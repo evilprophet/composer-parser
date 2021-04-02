@@ -1,0 +1,27 @@
+parameters:
+  parser.config:
+    packages_groups:
+      - { name: Group1, priority: 10, type: require, regex: /.*group1.* /}
+      - { name: Group2, priority: 20, type: require, regex: /.*/ }
+      - { name: Group2, priority: 30, type: replace, regex: /.*/ }
+
+  repository.config:
+    project1:
+      remote: git@git.com:projects/project1.git
+      directory: var/repository
+        observed_branches:
+          - origin/master
+    project2:
+      remote: git@git.com:projects/project2.git
+      directory: var/repository
+        observed_branches:
+          - origin/master
+
+  spreadsheet.config:
+    local:
+      file_directory: var/results
+      file_name: "projects-{date}.xlsx"
+    packages_groups:
+      - { name: Group1, order: 10 }
+      - { name: Group2, order: 20 }
+      - { name: Group3, order: 30 }

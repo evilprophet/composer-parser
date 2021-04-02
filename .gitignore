@@ -1,0 +1,7 @@
+*.iml
+/composer.lock
+/config/parameters.yaml
+
+/.idea/
+/var/
+/vendor/

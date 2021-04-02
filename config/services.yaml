@@ -1,0 +1,17 @@
+services:
+  parser.service:
+    class: \EvilStudio\ComposerParser\Service\Parser
+    arguments:
+      appDir: '%app.dir%'
+      repositoriesConfig: '%repositories.config%'
+      parserConfig: '%parser.config%'
+
+  local_spreadsheet.service:
+    class: \EvilStudio\ComposerParser\Service\LocalSpreadsheet
+    arguments:
+      spreadsheetConfig: '%spreadsheet.config%'
+
+  cleaner.service:
+    class: \EvilStudio\ComposerParser\Service\Cleaner
+    arguments:
+      repositoriesConfig: '%repositories.config%'
