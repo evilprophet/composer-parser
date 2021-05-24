@@ -2,8 +2,9 @@
 
 namespace EvilStudio\ComposerParser\Service\Provider;
 
-use Cz\Git\GitException;
-use Cz\Git\GitRepository as Git;
+use CzProject\GitPhp\Git;
+use CzProject\GitPhp\GitException;
+use CzProject\GitPhp\GitRepository as Repository;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
 class GitRepository extends AbstractProvider
@@ -11,7 +12,19 @@ class GitRepository extends AbstractProvider
     /**
      * @var Git
      */
-    protected $repository;
+    protected $git;
+
+    /**
+     * @var Repository
+     */
+    protected $gitRepository;
+
+    public function __construct(string $appDir)
+    {
+        parent::__construct($appDir);
+
+        $this->git = new Git();
+    }
 
     /**
      * @param RepositoryInterface $repository
@@ -22,11 +35,11 @@ class GitRepository extends AbstractProvider
         $this->localRepositoryDirectory = sprintf('%s/%s', $this->appDir, $repository->getDirectory());
 
         try {
-            $this->repository = Git::cloneRepository($repository->getRemote(), $this->localRepositoryDirectory);
+            $this->gitRepository = $this->git->cloneRepository($repository->getRemote(), $this->localRepositoryDirectory);
         } catch (GitException $exception) {
-            $this->repository = new Git($this->localRepositoryDirectory);
+            $this->gitRepository = $this->git->open($this->localRepositoryDirectory);
         }
 
-        $this->repository->checkout($repository->getBranch());
+        $this->gitRepository->checkout($repository->getBranch());
     }
 }
