@@ -2,11 +2,13 @@
 
 namespace EvilStudio\ComposerParser\Api;
 
+use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
+
 interface WriterInterface
 {
 
     /**
-     * @param array $parsedData
+     * @param ParsedDataInterface $parsedData
      */
-    public function write(array $parsedData): void;
+    public function write(ParsedDataInterface $parsedData): void;
 }

@@ -17,6 +17,10 @@ class RepositoryList implements RepositoryListInterface
      */
     protected $projectNamesList = [];
 
+    /**
+     * RepositoryList constructor.
+     * @param array $repositoryList
+     */
     public function __construct(array $repositoryList)
     {
         foreach ($repositoryList as $repository) {

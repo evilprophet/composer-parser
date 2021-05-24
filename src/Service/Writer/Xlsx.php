@@ -3,6 +3,7 @@
 namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
+use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -33,7 +34,10 @@ class Xlsx implements WriterInterface
     protected $packageConfig;
 
     /**
-     * @param array $writerConfig
+     * Xlsx constructor.
+     * @param string $fileName
+     * @param string $fileDirectory
+     * @param PackageConfigInterface $packageConfig
      */
     public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig)
     {
@@ -43,15 +47,15 @@ class Xlsx implements WriterInterface
     }
 
     /**
-     * @param array $parsedData
+     * @param ParsedDataInterface $parsedData
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public function write(array $parsedData): void
+    public function write(ParsedDataInterface $parsedData): void
     {
         $this->prepareSpreadsheet();
 
-        $this->prepareHeader($parsedData['projectCodes']);
-        $this->prepareData($parsedData['projectData']);
+        $this->prepareHeader($parsedData->getProjectCodes());
+        $this->prepareData($parsedData->getProjectsData());
 
         $this->writeSpreadsheet();
     }
@@ -114,6 +118,10 @@ class Xlsx implements WriterInterface
 
                 foreach ($group as $indexItem => $item) {
                     $sheet->setCellValue(sprintf('%s%s', $column, $row), $item);
+                    $style = $this->getPackageVersionCellStyle($item);
+                    if (!empty($style)) {
+                        $sheet->getStyle(sprintf('%s%s', $column, $row))->applyFromArray($style);
+                    }
                     $column++;
                 }
 
@@ -145,6 +153,9 @@ class Xlsx implements WriterInterface
         return $this->getFileDirectory() . DIRECTORY_SEPARATOR . $fileName . self::FILE_EXTENSION;
     }
 
+    /**
+     * @return array
+     */
     protected function getHeaderStyle(): array
     {
         return [
@@ -154,6 +165,9 @@ class Xlsx implements WriterInterface
         ];
     }
 
+    /**
+     * @return array
+     */
     protected function getGroupHeaderStyle(): array
     {
         return [
@@ -164,6 +178,24 @@ class Xlsx implements WriterInterface
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
                     'argb' => '999999',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    protected function getPackageVersionCellStyle($item): array
+    {
+        if (!preg_match('/(dev-.*|.*-dev)/', $item)) {
+            return [];
+        }
+
+        return [
+            'font' => [
+                'color' => [
+                    'argb' => 'FF8000',
                 ],
             ],
         ];

@@ -11,6 +11,10 @@ class PackageConfig implements PackageConfigInterface
      */
     protected $packageGroups;
 
+    /**
+     * PackageConfig constructor.
+     * @param array $packagesGroups
+     */
     public function __construct(array $packagesGroups)
     {
         $this->packageGroups = $packagesGroups;

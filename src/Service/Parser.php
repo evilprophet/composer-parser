@@ -3,8 +3,10 @@
 namespace EvilStudio\ComposerParser\Service;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
+use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
+use EvilStudio\ComposerParser\Model\ParsedData;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
 class Parser
@@ -46,10 +48,10 @@ class Parser
     }
 
     /**
-     * @return array
+     * @return ParsedDataInterface
      * @throws \EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException
      */
-    public function execute(): array
+    public function execute(): ParsedDataInterface
     {
         $this->parsedData = [];
 
@@ -64,7 +66,7 @@ class Parser
             $this->parseComposerJsonFiles($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
         }
 
-        return ['projectData' => $this->parsedData, 'projectCodes' => $projectNames];
+        return new ParsedData($this->parsedData, $projectNames);
     }
 
     /**

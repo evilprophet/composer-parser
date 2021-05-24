@@ -31,6 +31,10 @@ class Repository implements RepositoryInterface
      */
     protected $directory;
 
+    /**
+     * Repository constructor.
+     * @param array $repositoryConfig
+     */
     public function __construct(array $repositoryConfig)
     {
         $this->projectName = $repositoryConfig['name'];
