@@ -7,17 +7,23 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 class PackageConfig implements PackageConfigInterface
 {
     /**
+     * @var bool
+     */
+    protected $includeInstalledVersion;
+
+    /**
      * @var array
      */
     protected $packageGroups;
 
     /**
      * PackageConfig constructor.
-     * @param array $packagesGroups
+     * @param array $packageGroups
      */
-    public function __construct(array $packagesGroups)
+    public function __construct(bool $includeInstalledVersion, array $packageGroups)
     {
-        $this->packageGroups = $packagesGroups;
+        $this->packageGroups = $packageGroups;
+        $this->includeInstalledVersion = $includeInstalledVersion;
     }
 
     /**
@@ -51,5 +57,13 @@ class PackageConfig implements PackageConfigInterface
         });
 
         return $writerPackageGroup;
+    }
+
+    /**
+     * @return bool
+     */
+    public function includeInstalledVersion(): bool
+    {
+        return $this->includeInstalledVersion;
     }
 }

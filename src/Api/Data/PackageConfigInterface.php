@@ -17,4 +17,9 @@ interface PackageConfigInterface
      * @return array
      */
     public function getPackageGroupsForWriter(): array;
+
+    /**
+     * @return bool
+     */
+    public function includeInstalledVersion(): bool;
 }

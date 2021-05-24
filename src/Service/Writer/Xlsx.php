@@ -101,27 +101,34 @@ class Xlsx implements WriterInterface
     protected function prepareData(array $parsedComposerJson): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
-        $packagesGroups = $this->packageConfig->getPackageGroupsForWriter();
+        $packageGroups = $this->packageConfig->getPackageGroupsForWriter();
 
         $column = 'A';
         $row = 2;
-        foreach ($packagesGroups as $packagesGroup) {
-            $currentGroup = $parsedComposerJson[$packagesGroup['name']];
+        foreach ($packageGroups as $packageGroup) {
+            $currentGroup = $parsedComposerJson[$packageGroup['name']];
 
-            $sheet->setCellValue(sprintf('%s%s', $column, $row), $packagesGroup['name']);
+            $sheet->setCellValue(sprintf('%s%s', $column, $row), $packageGroup['name']);
             $sheet->getStyle(sprintf('A%s:Z%s', $row, $row))->applyFromArray($this->getGroupHeaderStyle());
             $row++;
 
-            foreach ($currentGroup as $indexGroup => $group) {
-                $sheet->setCellValue(sprintf('%s%s', $column, $row), $indexGroup);
+            foreach ($currentGroup as $packageName => $packageRow) {
+                $sheet->setCellValue(sprintf('%s%s', $column, $row), $packageName);
                 $column++;
 
-                foreach ($group as $indexItem => $item) {
-                    $sheet->setCellValue(sprintf('%s%s', $column, $row), $item);
-                    $style = $this->getPackageVersionCellStyle($item);
+                foreach ($packageRow as $projectName => $versionCell) {
+                    $cellCoordinate = sprintf('%s%s', $column, $row);
+                    $sheet->setCellValue($cellCoordinate, $versionCell['value']);
+
+                    $style = $this->getPackageVersionCellStyle($versionCell['value']);
                     if (!empty($style)) {
-                        $sheet->getStyle(sprintf('%s%s', $column, $row))->applyFromArray($style);
+                        $sheet->getStyle($cellCoordinate)->applyFromArray($style);
                     }
+
+                    if (!empty($versionCell['comment'])) {
+                        $sheet->getComment($cellCoordinate)->getText()->createTextRun($versionCell['comment']);
+                    }
+
                     $column++;
                 }
 
@@ -186,9 +193,9 @@ class Xlsx implements WriterInterface
     /**
      * @return array
      */
-    protected function getPackageVersionCellStyle($item): array
+    protected function getPackageVersionCellStyle($versionCell): array
     {
-        if (!preg_match('/(dev-.*|.*-dev)/', $item)) {
+        if (!preg_match('/(dev-.*|.*-dev)/', $versionCell)) {
             return [];
         }
 

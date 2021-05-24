@@ -2,6 +2,7 @@ services:
   packageConfig.model:
     class: \EvilStudio\ComposerParser\Model\PackageConfig
     arguments:
+      includeInstalledVersion: "@=container.getParameter('package.config')['includeInstalledVersion']"
       repositoriesConfig: "@=container.getParameter('package.config')['packageGroups']"
 
   repositoryList.model:
@@ -18,7 +19,8 @@ services:
     class: \EvilStudio\ComposerParser\Service\Provider\GitlabApi
     arguments:
       appDir: '%app.dir%'
-      gitlabConfig: "@=container.getParameter('app.config')['gitlab']"
+      gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
+      gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
 
   providerManager.service:
     class: \EvilStudio\ComposerParser\Service\Provider\ProviderManager

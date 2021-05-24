@@ -11,8 +11,7 @@ use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
 class Parser
 {
-    const COMPOSER_TYPE_REQUIRE = 'require';
-    const COMPOSER_TYPE_REPLACE = 'replace';
+    const COMMENT_INSTALLED_VERSION = 'Installed version: %s';
 
     /**
      * @var PackageConfigInterface
@@ -57,13 +56,18 @@ class Parser
 
         $provider = $this->providerManager->getProvider();
         $projectNames = $this->repositoryList->getProjectNames();
-        $projectNamesGrouped = array_fill_keys($projectNames, '');
+        $projectNamesGrouped = array_fill_keys($projectNames, ['value' => '']);
 
         /** @var RepositoryInterface $repository */
         foreach ($this->repositoryList->getList() as $repository) {
             $provider->load($repository);
             $composerJsonContent = $provider->getComposerJsonContent();
-            $this->parseComposerJsonFiles($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
+            $this->parseComposerJsonFile($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
+
+            $composerLockContent = $provider->getComposerLockContent();
+            if ($this->packageConfig->includeInstalledVersion() && !empty($composerLockContent)) {
+                $this->parseComposerLockFile($composerLockContent, $repository->getProjectName());
+            }
         }
 
         return new ParsedData($this->parsedData, $projectNames);
@@ -75,7 +79,7 @@ class Parser
      * @param string $projectName
      * @return array
      */
-    public function parseComposerJsonFiles(array $composerJsonContent, array $projectNamesGrouped, string $projectName): array
+    protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): array
     {
         $requireSection = $composerJsonContent['require'] ?? [];
         $replaceSection = $composerJsonContent['replace'] ?? [];
@@ -100,14 +104,48 @@ class Parser
      */
     protected function parseSection(array $section, string $projectName, string $type)
     {
-        $packagesGroups = $this->packageConfig->getPackageGroupsForParser($type);
+        $packageGroups = $this->packageConfig->getPackageGroupsForParser($type);
 
-        foreach ($packagesGroups as $packagesGroup) {
-            $matchedExtensionNames = preg_grep($packagesGroup['regex'], array_keys($section));
-            foreach ($matchedExtensionNames as $matchedExtensionName) {
-                $this->parsedData[$packagesGroup['name']][$matchedExtensionName][$projectName] = $section[$matchedExtensionName];
-                unset($section[$matchedExtensionName]);
+        foreach ($packageGroups as $packageGroup) {
+            $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($section));
+            foreach ($matchedPackagesNames as $matchedPackageName) {
+                $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $section[$matchedPackageName]];
+                unset($section[$matchedPackageName]);
             }
         }
+    }
+
+    /**
+     * @param array $composerLockContent
+     * @param string $projectName
+     * @return array
+     */
+    protected function parseComposerLockFile(array $composerLockContent, string $projectName): array
+    {
+        $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
+        $packagesInstalled = $composerLockContent['packages'];
+
+        foreach ($this->parsedData as $packageGroupName => $packageGroup) {
+            if (array_search($packageGroupName, array_column($skippedPackageGroups, 'name')) !== false) {
+                continue;
+            }
+
+            foreach ($packageGroup as $packageName => $packageRow) {
+                $packageInstalledIndex = array_search($packageName, array_column($packagesInstalled, 'name'));
+                if (!$packageInstalledIndex) {
+                    continue;
+                }
+
+                $packageInstalled = $packagesInstalled[$packageInstalledIndex];
+                if ($packageInstalled['version'] == $this->parsedData[$packageGroupName][$packageName][$projectName]['value']) {
+                    continue;
+                }
+
+                $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $packageInstalled['version']);
+                $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
+            }
+        }
+
+        return $this->parsedData;
     }
 }

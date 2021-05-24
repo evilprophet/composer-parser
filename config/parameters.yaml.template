@@ -7,6 +7,7 @@ parameters:
       apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
 
   package.config:
+    includeInstalledVersion: false
     packageGroups:
       - { name: Group1, parserPriority: 10, writerOrder: 30, section: require, regex: /.*group1.*/}
       - { name: Group2, parserPriority: 20, writerOrder: 20, section: require, regex: /.*group2*/ }
