@@ -2,31 +2,31 @@
 
 namespace EvilStudio\ComposerParser\Command;
 
-use EvilStudio\ComposerParser\Service\LocalSpreadsheet;
+use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Service\Parser;
+use EvilStudio\ComposerParser\Service\Writer\WriterManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Run extends Command
 {
-
     /**
      * @var Parser
      */
     protected $parser;
 
     /**
-     * @var LocalSpreadsheet
+     * @var WriterManager
      */
-    protected $localSpreadsheet;
+    protected $writerManager;
 
-    public function __construct(Parser $parser, LocalSpreadsheet $localSpreadsheet, string $name = null)
+    public function __construct(Parser $parser, WriterManager $writerManager, string $name = null)
     {
         parent::__construct($name);
 
         $this->parser = $parser;
-        $this->localSpreadsheet = $localSpreadsheet;
+        $this->writerManager = $writerManager;
     }
 
     protected function configure()
@@ -39,14 +39,15 @@ class Run extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @throws \Cz\Git\GitException
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $parsedData = $this->parser->parseRepositories();
+        $parsedData = $this->parser->execute();
 
-        $this->localSpreadsheet->write($parsedData);
+        /** @var WriterInterface $writer */
+        $writer = $this->writerManager->getWriter();
+        $writer->write($parsedData);
 
         return 0;
     }

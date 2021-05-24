@@ -2,24 +2,26 @@
   "name": "evilstudio/composer-parser",
   "type": "project",
   "description": "Simple app for parse composer.json file from multiple repositories to one Excel spreadsheet",
-  "keywords": ["composer", "parser", "git", "sreadsheet", "Excel", "xlsx", "xls"],
+  "keywords": ["composer", "parser", "git", "spreadsheet", "Excel", "xlsx", "xls"],
   "license": "MIT",
   "authors": [
     {
       "name": "Dariusz Matoga",
-      "email": "evilprophet.studio@gmail.com"
+      "email": "dmatoga@evilstudio.pl"
     }
   ],
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
-    "symfony/yaml": "^5.2",
     "symfony/config": "^5.2",
     "symfony/console": "^5.2",
     "symfony/dependency-injection": "^5.2",
+    "symfony/expression-language": "^5.2",
     "symfony/filesystem": "^5.2",
+    "symfony/yaml": "^5.2",
     "czproject/git-php": "^3.17",
-    "phpoffice/phpspreadsheet": "^1.9"
+    "phpoffice/phpspreadsheet": "^1.9",
+    "php-curl-class/php-curl-class": "^9.1"
   },
   "autoload": {
     "psr-4": {

@@ -10,13 +10,12 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class Application extends \Symfony\Component\Console\Application
 {
-
     /**
      * @param string $name
      * @param string $version
      * @throws \Exception
      */
-    public function __construct($name = 'Composer Parser', $version = '1.0')
+    public function __construct($name = 'Composer Parser', $version = '2.0')
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('app.dir', __DIR__ . '/..');
@@ -29,7 +28,7 @@ class Application extends \Symfony\Component\Console\Application
         $this->addCommands([
             new Run(
                 $containerBuilder->get('parser.service'),
-                $containerBuilder->get('local_spreadsheet.service')
+                $containerBuilder->get('writerManager.service')
             )
         ]);
         $this->addCommands([

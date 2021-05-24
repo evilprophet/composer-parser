@@ -1,27 +1,29 @@
 parameters:
-  parser.config:
-    packages_groups:
-      - { name: Group1, priority: 10, type: require, regex: /.*group1.* /}
-      - { name: Group2, priority: 20, type: require, regex: /.*/ }
-      - { name: Group2, priority: 30, type: replace, regex: /.*/ }
+  app.config:
+    providerType: gitRepository #Supported: gitRepository, gitlabApi
+    writerType: xlsx #Supported: xlsx
+    gitlab:
+      url: https://gitlab.com
+      apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
+
+  package.config:
+    packageGroups:
+      - { name: Group1, parserPriority: 10, writerOrder: 30, section: require, regex: /.*group1.*/}
+      - { name: Group2, parserPriority: 20, writerOrder: 20, section: require, regex: /.*group2*/ }
+      - { name: Group3, parserPriority: 30, writerOrder: 20, section: replace, regex: /.*/ }
+
+  writer.config:
+    local:
+      fileName: "projects-{date}" #Without file extension
+      fileDirectory: var/results
 
   repository.config:
-    project1:
-      remote: git@git.com:projects/project1.git
-      directory: var/repository
-        observed_branches:
-          - origin/master
-    project2:
-      remote: git@git.com:projects/project2.git
-      directory: var/repository
-        observed_branches:
-          - origin/master
-
-  spreadsheet.config:
-    local:
-      file_directory: var/results
-      file_name: "projects-{date}.xlsx"
-    packages_groups:
-      - { name: Group1, order: 10 }
-      - { name: Group2, order: 20 }
-      - { name: Group3, order: 30 }
+    repositoryList:
+      - name: project1
+        directory: var/repositories/project1
+        remote: git@git.com:projects/project1.git
+        branch: origin/master #This format is correct for provider gitRepository
+      - name: project2
+        directory: var/repositories/project2
+        remote: git@git.com:projects/project2.git
+        branch: master #This format is correct for provider gitlabApi

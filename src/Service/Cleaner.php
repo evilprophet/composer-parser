@@ -2,30 +2,33 @@
 
 namespace EvilStudio\ComposerParser\Service;
 
+use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
+use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Cleaner
 {
     /**
-     * @var array
+     * @var RepositoryListInterface
      */
-    protected $repositoriesConfig;
+    protected $repositoryList;
 
     /**
      * Cleaner constructor.
-     * @param array $repositoriesConfig
+     * @param RepositoryListInterface $repositoryList
      */
-    public function __construct(array $repositoriesConfig)
+    public function __construct(RepositoryListInterface $repositoryList)
     {
-        $this->repositoriesConfig = $repositoriesConfig;
+        $this->repositoryList = $repositoryList;
     }
 
     public function execute(): void
     {
         $filesystem = new Filesystem();
-        foreach ($this->repositoriesConfig as $repositoryName => $repositoryConfig) {
-            $filesystem->remove($repositoryConfig['directory']);
 
+        /** @var RepositoryInterface $repository */
+        foreach ($this->repositoryList->getList() as $repository) {
+            $filesystem->remove($repository->getDirectory());
         }
     }
 }

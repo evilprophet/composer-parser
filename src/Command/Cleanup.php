@@ -9,7 +9,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Cleanup extends Command
 {
-
     /**
      * @var Cleaner
      */
@@ -32,8 +31,7 @@ class Cleanup extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @throws \Cz\Git\GitException
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

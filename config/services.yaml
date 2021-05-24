@@ -1,17 +1,55 @@
 services:
+  packageConfig.model:
+    class: \EvilStudio\ComposerParser\Model\PackageConfig
+    arguments:
+      repositoriesConfig: "@=container.getParameter('package.config')['packageGroups']"
+
+  repositoryList.model:
+    class: \EvilStudio\ComposerParser\Model\RepositoryList
+    arguments:
+      repositoryList: "@=container.getParameter('repository.config')['repositoryList']"
+
+  provider.gitRepository.service:
+    class: \EvilStudio\ComposerParser\Service\Provider\GitRepository
+    arguments:
+      appDir: '%app.dir%'
+
+  provider.gitlabApi.service:
+    class: \EvilStudio\ComposerParser\Service\Provider\GitlabApi
+    arguments:
+      appDir: '%app.dir%'
+      gitlabConfig: "@=container.getParameter('app.config')['gitlab']"
+
+  providerManager.service:
+    class: \EvilStudio\ComposerParser\Service\Provider\ProviderManager
+    arguments:
+      providerType: "@=container.getParameter('app.config')['providerType']"
+      providers:
+        gitRepository: '@provider.gitRepository.service'
+        gitlabApi: '@provider.gitlabApi.service'
+
+  writer.xlsx.service:
+    class: \EvilStudio\ComposerParser\Service\Writer\Xlsx
+    arguments:
+      fileName: "@=container.getParameter('writer.config')['local']['fileName']"
+      fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
+      packageConfig: '@packageConfig.model'
+
+  writerManager.service:
+    class: \EvilStudio\ComposerParser\Service\Writer\WriterManager
+    arguments:
+      writerType: "@=container.getParameter('app.config')['writerType']"
+      writers:
+        xlsx: '@writer.xlsx.service'
+
   parser.service:
     class: \EvilStudio\ComposerParser\Service\Parser
     arguments:
-      appDir: '%app.dir%'
-      repositoriesConfig: '%repositories.config%'
-      parserConfig: '%parser.config%'
-
-  local_spreadsheet.service:
-    class: \EvilStudio\ComposerParser\Service\LocalSpreadsheet
-    arguments:
-      spreadsheetConfig: '%spreadsheet.config%'
+      packageConfig: '@packageConfig.model'
+      repositoryList: '@repositoryList.model'
+      providerManager: '@providerManager.service'
 
   cleaner.service:
     class: \EvilStudio\ComposerParser\Service\Cleaner
     arguments:
-      repositoriesConfig: '%repositories.config%'
+      repositoryList: '@repositoryList.model'

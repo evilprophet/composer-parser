@@ -2,8 +2,10 @@
 
 namespace EvilStudio\ComposerParser\Service;
 
-use Cz\Git\GitException;
-use Cz\Git\GitRepository;
+use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
+use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
+use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
+use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
 class Parser
 {
@@ -11,24 +13,19 @@ class Parser
     const COMPOSER_TYPE_REPLACE = 'replace';
 
     /**
-     * @var string
+     * @var PackageConfigInterface
      */
-    protected $appDir;
+    protected $packageConfig;
 
     /**
-     * @var array
+     * @var RepositoryListInterface
      */
-    protected $repositoriesConfig;
+    protected $repositoryList;
 
     /**
-     * @var array
+     * @var ProviderManager
      */
-    protected $parserConfig;
-
-    /**
-     * @var string
-     */
-    protected $localDirectoryTemp;
+    protected $providerManager;
 
     /**
      * @var array
@@ -37,68 +34,57 @@ class Parser
 
     /**
      * Parser constructor.
-     * @param string $appDir
-     * @param array $repositoriesConfig
-     * @param array $parserConfig
+     * @param PackageConfigInterface $packageConfig
+     * @param RepositoryListInterface $repositoryList
+     * @param ProviderManager $providerManager
      */
-    public function __construct(string $appDir, array $repositoriesConfig, array $parserConfig)
+    public function __construct(PackageConfigInterface $packageConfig, RepositoryListInterface $repositoryList, ProviderManager $providerManager)
     {
-        $this->appDir = $appDir;
-        $this->repositoriesConfig = $repositoriesConfig;
-        $this->parserConfig = $parserConfig;
+        $this->packageConfig = $packageConfig;
+        $this->repositoryList = $repositoryList;
+        $this->providerManager = $providerManager;
     }
 
     /**
      * @return array
-     * @throws GitException
+     * @throws \EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException
      */
-    public function parseRepositories(): array
+    public function execute(): array
     {
         $this->parsedData = [];
-        $projectCodesGrouped = [];
-        $branchesGrouped = [];
 
-        foreach ($this->repositoriesConfig as $repositoryName => $repositoryConfig) {
-            $branches = $repositoryConfig['observed_branches'];
-            $branchesGrouped[$repositoryName] = $branches;
+        $provider = $this->providerManager->getProvider();
+        $projectNames = $this->repositoryList->getProjectNames();
+        $projectNamesGrouped = array_fill_keys($projectNames, '');
 
-            $projectCodes = $this->getProjectCodes($branches, $repositoryName);
-            $projectCodesGrouped = array_merge($projectCodes, $projectCodesGrouped);
+        /** @var RepositoryInterface $repository */
+        foreach ($this->repositoryList->getList() as $repository) {
+            $provider->load($repository);
+            $composerJsonContent = $provider->getComposerJsonContent();
+            $this->parseComposerJsonFiles($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
         }
 
-        ksort($projectCodesGrouped);
-
-        foreach ($this->repositoriesConfig as $repositoryName => $repositoryConfig) {
-            $repository = $this->loadRepository($repositoryConfig);
-            $this->parseComposerJsonFiles($repository, $branchesGrouped[$repositoryName], $projectCodesGrouped, $repositoryName);
-        }
-
-        return ['projectData' => $this->parsedData, 'projectCodes' => $projectCodesGrouped];
+        return ['projectData' => $this->parsedData, 'projectCodes' => $projectNames];
     }
 
     /**
-     * @param GitRepository $repository
-     * @param array $branches
-     * @param array $projectCodes
-     * @param string $repositoryName
+     * @param array $composerJsonContent
+     * @param array $projectNamesGrouped
+     * @param string $projectName
      * @return array
-     * @throws GitException
      */
-    public function parseComposerJsonFiles(GitRepository $repository, array $branches, array $projectCodes, string $repositoryName): array
+    public function parseComposerJsonFiles(array $composerJsonContent, array $projectNamesGrouped, string $projectName): array
     {
-        foreach ($branches as $branch) {
-            $parsedComposer = $this->getParsedComposerJson($repository, $branch);
-            $requireSection = $parsedComposer['require'] ?? [];
-            $replaceSection = $parsedComposer['replace'] ?? [];
+        $requireSection = $composerJsonContent['require'] ?? [];
+        $replaceSection = $composerJsonContent['replace'] ?? [];
 
-            $this->parseSection($requireSection, $branch, $repositoryName, self::COMPOSER_TYPE_REQUIRE);
-            $this->parseSection($replaceSection, $branch, $repositoryName, self::COMPOSER_TYPE_REPLACE);
-        }
+        $this->parseSection($requireSection, $projectName, PackageConfigInterface::COMPOSER_TYPE_REQUIRE);
+        $this->parseSection($replaceSection, $projectName, PackageConfigInterface::COMPOSER_TYPE_REPLACE);
 
         foreach ($this->parsedData as &$group) {
             ksort($group);
             foreach ($group as &$item) {
-                $item = array_merge($projectCodes, $item);
+                $item = array_merge($projectNamesGrouped, $item);
             }
         }
 
@@ -106,92 +92,20 @@ class Parser
     }
 
     /**
-     * @param array $branches
-     * @param string $repositoryName
-     * @return array
-     */
-    public function getProjectCodes(array $branches, string $repositoryName): array
-    {
-        $projectCodes = [];
-
-        foreach ($branches as $branch) {
-            $projectCode = $this->getProductNameWithRepository($branch, $repositoryName);
-            $projectCodes[$projectCode] = '';
-        }
-
-        return $projectCodes;
-    }
-
-    /**
-     * @param array $repositoryConfig
-     * @return GitRepository
-     * @throws GitException
-     */
-    protected function loadRepository(array $repositoryConfig): GitRepository
-    {
-        $this->localDirectoryTemp = sprintf('%s/%s', $this->appDir, $repositoryConfig['directory']);
-        try {
-            $repository = GitRepository::cloneRepository($repositoryConfig['remote'], $this->localDirectoryTemp);
-        } catch (GitException $exception) {
-            $repository = new GitRepository($this->localDirectoryTemp);
-        }
-
-        return $repository;
-    }
-
-    /**
-     * @param GitRepository $repository
-     * @param string $branch
-     * @return mixed
-     * @throws GitException
-     */
-    protected function getParsedComposerJson(GitRepository $repository, string $branch)
-    {
-        $repository->checkout($branch);
-//        $repository->pull();
-        $composerJsonPath = sprintf('%s/composer.json', $this->localDirectoryTemp);
-        $composerJsonFile = file_get_contents($composerJsonPath);
-
-        return json_decode($composerJsonFile, true);
-    }
-
-    /**
      * @param array $section
-     * @param string $branch
-     * @param string $repositoryName
+     * @param string $projectName
      * @param string $type
      */
-    protected function parseSection(array $section, string $branch, string $repositoryName, string $type = self::COMPOSER_TYPE_REQUIRE)
+    protected function parseSection(array $section, string $projectName, string $type)
     {
-        $projectCode = $this->getProductNameWithRepository($branch, $repositoryName);
-
-        $packagesGroups = $this->parserConfig['packages_groups'];
-        usort($packagesGroups, function ($a, $b) {
-            return $a['priority'] > $b['priority'] ? -1 : 1;
-        });
-        $packagesGroups = array_filter($packagesGroups, function ($item) use ($type) {
-            return $item['type'] == $type;
-        });
+        $packagesGroups = $this->packageConfig->getPackageGroupsForParser($type);
 
         foreach ($packagesGroups as $packagesGroup) {
             $matchedExtensionNames = preg_grep($packagesGroup['regex'], array_keys($section));
             foreach ($matchedExtensionNames as $matchedExtensionName) {
-                $this->parsedData[$packagesGroup['name']][$matchedExtensionName][$projectCode] = $section[$matchedExtensionName];
+                $this->parsedData[$packagesGroup['name']][$matchedExtensionName][$projectName] = $section[$matchedExtensionName];
                 unset($section[$matchedExtensionName]);
             }
         }
-    }
-
-    /**
-     * @param string $branchName
-     * @param string $repositoryName
-     * @return string
-     */
-    protected function getProductNameWithRepository(string $branchName, string $repositoryName): string
-    {
-        $projectCode = explode('/', $branchName);
-        $projectCode = end($projectCode);
-
-        return sprintf('%s - %s', $repositoryName, $projectCode);
     }
 }
