@@ -5,6 +5,7 @@ namespace EvilStudio\ComposerParser\Service\Writer;
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
@@ -84,13 +85,14 @@ class Xlsx implements WriterInterface
         $sheet = $this->spreadsheet->getActiveSheet();
 
         $currentDate = date('Y-m-d H:i');
-        $sheet->getColumnDimension('A')->setAutoSize(true);
-        $sheet->setCellValue('A1', sprintf('Last update: %s', $currentDate));
+        $sheet->getColumnDimensionByColumn(1)->setAutoSize(true);
+        $sheet->setCellValueByColumnAndRow(1, 1, sprintf('Last update: %s', $currentDate));
 
-        $column = 'B';
+        $column = 2;
         foreach ($projectCodes as $projectCode) {
-            $sheet->setCellValue(sprintf('%s1', $column), $projectCode);
-            $sheet->getStyle(sprintf('%s1', $column))->applyFromArray($this->getHeaderStyle());
+            $sheet->setCellValueByColumnAndRow($column, 1, $projectCode);
+            $sheet->getStyleByColumnAndRow($column, 1)->applyFromArray($this->getHeaderStyle());
+            $sheet->getColumnDimensionByColumn($column)->setWidth(10);
             $column++;
         }
     }
@@ -103,36 +105,35 @@ class Xlsx implements WriterInterface
         $sheet = $this->spreadsheet->getActiveSheet();
         $packageGroups = $this->packageConfig->getPackageGroupsForWriter();
 
-        $column = 'A';
+        $column = 1;
         $row = 2;
         foreach ($packageGroups as $packageGroup) {
             $currentGroup = $parsedComposerJson[$packageGroup['name']];
 
-            $sheet->setCellValue(sprintf('%s%s', $column, $row), $packageGroup['name']);
-            $sheet->getStyle(sprintf('A%s:Z%s', $row, $row))->applyFromArray($this->getGroupHeaderStyle());
+            $sheet->setCellValueByColumnAndRow($column, $row, $packageGroup['name']);
+            $sheet->getStyleByColumnAndRow(1, $row, 26, $row)->applyFromArray($this->getGroupHeaderStyle());
             $row++;
 
             foreach ($currentGroup as $packageName => $packageRow) {
-                $sheet->setCellValue(sprintf('%s%s', $column, $row), $packageName);
+                $sheet->setCellValueByColumnAndRow($column, $row, $packageName);
                 $column++;
 
                 foreach ($packageRow as $projectName => $versionCell) {
-                    $cellCoordinate = sprintf('%s%s', $column, $row);
-                    $sheet->setCellValue($cellCoordinate, $versionCell['value']);
+                    $sheet->setCellValueByColumnAndRow($column, $row, $versionCell['value']);
 
                     $style = $this->getPackageVersionCellStyle($versionCell['value']);
                     if (!empty($style)) {
-                        $sheet->getStyle($cellCoordinate)->applyFromArray($style);
+                        $sheet->getStyleByColumnAndRow($column, $row)->applyFromArray($style);
                     }
 
                     if (!empty($versionCell['comment'])) {
-                        $sheet->getComment($cellCoordinate)->getText()->createTextRun($versionCell['comment']);
+                        $sheet->getCommentByColumnAndRow($column, $row)->getText()->createTextRun($versionCell['comment']);
                     }
 
                     $column++;
                 }
 
-                $column = 'A';
+                $column = 1;
                 $row++;
             }
         }
