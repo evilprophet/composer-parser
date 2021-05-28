@@ -12,18 +12,42 @@ class PackageConfig implements PackageConfigInterface
     protected $includeInstalledVersion;
 
     /**
+     * @var string
+     */
+    protected $installedVersionDisplayedIn;
+
+    /**
      * @var array
      */
     protected $packageGroups;
 
     /**
      * PackageConfig constructor.
+     * @param bool $includeInstalledVersion
+     * @param string $installedVersionDisplayedIn
      * @param array $packageGroups
      */
-    public function __construct(bool $includeInstalledVersion, array $packageGroups)
+    public function __construct(bool $includeInstalledVersion, string $installedVersionDisplayedIn, array $packageGroups)
     {
-        $this->packageGroups = $packageGroups;
         $this->includeInstalledVersion = $includeInstalledVersion;
+        $this->installedVersionDisplayedIn = $installedVersionDisplayedIn;
+        $this->packageGroups = $packageGroups;
+    }
+
+    /**
+     * @return bool
+     */
+    public function includeInstalledVersion(): bool
+    {
+        return $this->includeInstalledVersion;
+    }
+
+    /**
+     * @return string
+     */
+    public function getInstalledVersionDisplayedIn(): string
+    {
+        return $this->installedVersionDisplayedIn;
     }
 
     /**
@@ -57,13 +81,5 @@ class PackageConfig implements PackageConfigInterface
         });
 
         return $writerPackageGroup;
-    }
-
-    /**
-     * @return bool
-     */
-    public function includeInstalledVersion(): bool
-    {
-        return $this->includeInstalledVersion;
     }
 }

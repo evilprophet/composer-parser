@@ -3,6 +3,7 @@ services:
     class: \EvilStudio\ComposerParser\Model\PackageConfig
     arguments:
       includeInstalledVersion: "@=container.getParameter('package.config')['includeInstalledVersion']"
+      installedVersionDisplayedIn: "@=container.getParameter('package.config')['installedVersionDisplayedIn']"
       repositoriesConfig: "@=container.getParameter('package.config')['packageGroups']"
 
   repositoryList.model:

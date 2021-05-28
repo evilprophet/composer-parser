@@ -1,6 +1,6 @@
 parameters:
   app.config:
-    providerType: gitRepository #Supported: gitRepository, gitlabApi
+    providerType: gitRepository #Supported: gitlabApi, gitRepository
     writerType: xlsx #Supported: xlsx
     gitlab:
       url: https://gitlab.com
@@ -8,6 +8,7 @@ parameters:
 
   package.config:
     includeInstalledVersion: false
+    installedVersionDisplayedIn: comment #Supported: comment, value
     packageGroups:
       - { name: Group1, parserPriority: 10, writerOrder: 30, section: require, regex: /.*group1.*/}
       - { name: Group2, parserPriority: 20, writerOrder: 20, section: require, regex: /.*group2*/ }

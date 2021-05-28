@@ -141,8 +141,15 @@ class Parser
                     continue;
                 }
 
-                $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $packageInstalled['version']);
-                $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
+                switch ($this->packageConfig->getInstalledVersionDisplayedIn()) {
+                    case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_VALUE:
+                        $this->parsedData[$packageGroupName][$packageName][$projectName]['value'] = $packageInstalled['version'];
+                        break;
+                    case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_COMMENT:
+                        $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $packageInstalled['version']);
+                        $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
+                        break;
+                }
             }
         }
 
