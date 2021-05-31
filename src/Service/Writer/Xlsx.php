@@ -5,7 +5,6 @@ namespace EvilStudio\ComposerParser\Service\Writer;
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
@@ -51,7 +50,7 @@ class Xlsx implements WriterInterface
      * @param ParsedDataInterface $parsedData
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public function write(ParsedDataInterface $parsedData): void
+    public function execute(ParsedDataInterface $parsedData): void
     {
         $this->prepareSpreadsheet();
 

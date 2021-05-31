@@ -1,15 +1,16 @@
 <?php
 
-namespace EvilStudio\ComposerParser\Service;
+namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
+use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Model\ParsedData;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
-class Parser
+class ComposerJsonAndLock implements ParserInterface
 {
     const COMMENT_INSTALLED_VERSION = 'Installed version: %s';
 
@@ -141,7 +142,7 @@ class Parser
                     continue;
                 }
 
-                switch ($this->packageConfig->getInstalledVersionDisplayedIn()) {
+                switch ($this->packageConfig->installedVersionDisplayedIn()) {
                     case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_VALUE:
                         $this->parsedData[$packageGroupName][$packageName][$projectName]['value'] = $packageInstalled['version'];
                         break;

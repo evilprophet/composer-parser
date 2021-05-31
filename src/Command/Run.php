@@ -2,8 +2,9 @@
 
 namespace EvilStudio\ComposerParser\Command;
 
+use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
-use EvilStudio\ComposerParser\Service\Parser;
+use EvilStudio\ComposerParser\Service\Parser\ParserManager;
 use EvilStudio\ComposerParser\Service\Writer\WriterManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,20 +13,26 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Run extends Command
 {
     /**
-     * @var Parser
+     * @var ParserManager
      */
-    protected $parser;
+    protected $parserManager;
 
     /**
      * @var WriterManager
      */
     protected $writerManager;
 
-    public function __construct(Parser $parser, WriterManager $writerManager, string $name = null)
+    /**
+     * Run constructor.
+     * @param ParserManager $parserManager
+     * @param WriterManager $writerManager
+     * @param string|null $name
+     */
+    public function __construct(ParserManager $parserManager, WriterManager $writerManager, string $name = null)
     {
         parent::__construct($name);
 
-        $this->parser = $parser;
+        $this->parserManager = $parserManager;
         $this->writerManager = $writerManager;
     }
 
@@ -43,11 +50,13 @@ class Run extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $parsedData = $this->parser->execute();
+        /** @var ParserInterface $parser */
+        $parser = $this->parserManager->getParser();
+        $parsedData = $parser->execute();
 
         /** @var WriterInterface $writer */
         $writer = $this->writerManager->getWriter();
-        $writer->write($parsedData);
+        $writer->execute($parsedData);
 
         return 0;
     }

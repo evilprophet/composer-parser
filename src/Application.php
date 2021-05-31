@@ -27,7 +27,7 @@ class Application extends \Symfony\Component\Console\Application
         parent::__construct($name, $version);
         $this->addCommands([
             new Run(
-                $containerBuilder->get('parser.service'),
+                $containerBuilder->get('parserManager.service'),
                 $containerBuilder->get('writerManager.service')
             )
         ]);

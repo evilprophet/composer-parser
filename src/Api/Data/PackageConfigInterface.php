@@ -18,7 +18,7 @@ interface PackageConfigInterface
     /**
      * @return string
      */
-    public function getInstalledVersionDisplayedIn(): string;
+    public function installedVersionDisplayedIn(): string;
 
     /**
      * @param string|null $section

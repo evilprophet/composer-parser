@@ -45,7 +45,7 @@ class PackageConfig implements PackageConfigInterface
     /**
      * @return string
      */
-    public function getInstalledVersionDisplayedIn(): string
+    public function installedVersionDisplayedIn(): string
     {
         return $this->installedVersionDisplayedIn;
     }

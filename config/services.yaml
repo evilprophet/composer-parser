@@ -31,6 +31,20 @@ services:
         gitRepository: '@provider.gitRepository.service'
         gitlabApi: '@provider.gitlabApi.service'
 
+  parser.composerJsonAndLock.service:
+    class: \EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock
+    arguments:
+      packageConfig: '@packageConfig.model'
+      repositoryList: '@repositoryList.model'
+      providerManager: '@providerManager.service'
+
+  parserManager.service:
+    class: \EvilStudio\ComposerParser\Service\Parser\ParserManager
+    arguments:
+      parserType: "@=container.getParameter('app.config')['parserType']"
+      parsers:
+        composerJsonAndLock: '@parser.composerJsonAndLock.service'
+
   writer.xlsx.service:
     class: \EvilStudio\ComposerParser\Service\Writer\Xlsx
     arguments:
@@ -44,13 +58,6 @@ services:
       writerType: "@=container.getParameter('app.config')['writerType']"
       writers:
         xlsx: '@writer.xlsx.service'
-
-  parser.service:
-    class: \EvilStudio\ComposerParser\Service\Parser
-    arguments:
-      packageConfig: '@packageConfig.model'
-      repositoryList: '@repositoryList.model'
-      providerManager: '@providerManager.service'
 
   cleaner.service:
     class: \EvilStudio\ComposerParser\Service\Cleaner

@@ -10,5 +10,5 @@ interface WriterInterface
     /**
      * @param ParsedDataInterface $parsedData
      */
-    public function write(ParsedDataInterface $parsedData): void;
+    public function execute(ParsedDataInterface $parsedData): void;
 }

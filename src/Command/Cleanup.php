@@ -14,6 +14,11 @@ class Cleanup extends Command
      */
     protected $cleaner;
 
+    /**
+     * Cleanup constructor.
+     * @param Cleaner $cleaner
+     * @param string|null $name
+     */
     public function __construct(Cleaner $cleaner, string $name = null)
     {
         parent::__construct($name);
