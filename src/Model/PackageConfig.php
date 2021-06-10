@@ -23,15 +23,13 @@ class PackageConfig implements PackageConfigInterface
 
     /**
      * PackageConfig constructor.
-     * @param bool $includeInstalledVersion
-     * @param string $installedVersionDisplayedIn
-     * @param array $packageGroups
+     * @param array $packageConfigData
      */
-    public function __construct(bool $includeInstalledVersion, string $installedVersionDisplayedIn, array $packageGroups)
+    public function __construct(array $packageConfigData)
     {
-        $this->includeInstalledVersion = $includeInstalledVersion;
-        $this->installedVersionDisplayedIn = $installedVersionDisplayedIn;
-        $this->packageGroups = $packageGroups;
+        $this->includeInstalledVersion = $packageConfigData['includeInstalledVersion'] ?? false;
+        $this->installedVersionDisplayedIn = $packageConfigData['installedVersionDisplayedIn'] ?? self::INSTALLED_VERSION_DISPLAYED_IN_COMMENT;
+        $this->packageGroups = $packageConfigData['packageGroups'] ?? [];
     }
 
     /**

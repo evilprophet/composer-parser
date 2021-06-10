@@ -2,9 +2,7 @@ services:
   packageConfig.model:
     class: \EvilStudio\ComposerParser\Model\PackageConfig
     arguments:
-      includeInstalledVersion: "@=container.getParameter('package.config')['includeInstalledVersion']"
-      installedVersionDisplayedIn: "@=container.getParameter('package.config')['installedVersionDisplayedIn']"
-      repositoriesConfig: "@=container.getParameter('package.config')['packageGroups']"
+      packageConfigData: "@=container.getParameter('package.config')"
 
   repositoryList.model:
     class: \EvilStudio\ComposerParser\Model\RepositoryList
@@ -31,6 +29,13 @@ services:
         gitRepository: '@provider.gitRepository.service'
         gitlabApi: '@provider.gitlabApi.service'
 
+  parser.composerJson.service:
+    class: \EvilStudio\ComposerParser\Service\Parser\ComposerJson
+    arguments:
+      packageConfig: '@packageConfig.model'
+      repositoryList: '@repositoryList.model'
+      providerManager: '@providerManager.service'
+
   parser.composerJsonAndLock.service:
     class: \EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock
     arguments:
@@ -43,6 +48,7 @@ services:
     arguments:
       parserType: "@=container.getParameter('app.config')['parserType']"
       parsers:
+        composerJson: '@parser.composerJson.service'
         composerJsonAndLock: '@parser.composerJsonAndLock.service'
 
   writer.xlsx.service:

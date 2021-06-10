@@ -13,15 +13,15 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
+    "czproject/git-php": "^4.0",
+    "php-curl-class/php-curl-class": "^9.1",
+    "phpoffice/phpspreadsheet": "^1.9",
     "symfony/config": "^5.2",
     "symfony/console": "^5.2",
     "symfony/dependency-injection": "^5.2",
     "symfony/expression-language": "^5.2",
     "symfony/filesystem": "^5.2",
-    "symfony/yaml": "^5.2",
-    "czproject/git-php": "^4.0",
-    "phpoffice/phpspreadsheet": "^1.9",
-    "php-curl-class/php-curl-class": "^9.1"
+    "symfony/yaml": "^5.2"
   },
   "autoload": {
     "psr-4": {

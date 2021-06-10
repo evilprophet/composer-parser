@@ -1,15 +1,17 @@
 parameters:
   app.config:
     providerType: gitRepository #Supported: gitlabApi, gitRepository
-    parserType: composerJsonAndLock #Supported: composerJsonAndLock
+    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock
     writerType: xlsx #Supported: xlsx
     gitlab:
       url: https://gitlab.com
       apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
 
   package.config:
+    #Options available in parser composerJsonAndLock
     includeInstalledVersion: false
     installedVersionDisplayedIn: comment #Supported: comment, value
+
     packageGroups:
       - { name: Group1, parserPriority: 10, writerOrder: 30, section: require, regex: /.*group1.*/}
       - { name: Group2, parserPriority: 20, writerOrder: 20, section: require, regex: /.*group2*/ }
