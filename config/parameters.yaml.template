@@ -27,8 +27,8 @@ parameters:
       - name: project1
         directory: var/repositories/project1
         remote: git@git.com:projects/project1.git
-        branch: origin/master #This format is correct for provider gitRepository
+        branch: origin/master #Format supported for provider: gitRepository
       - name: project2
         directory: var/repositories/project2
         remote: git@git.com:projects/project2.git
-        branch: master #This format is correct for provider gitlabApi
+        branch: master #Format supported for provider: gitlabApi

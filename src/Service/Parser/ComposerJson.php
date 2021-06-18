@@ -114,6 +114,10 @@ class ComposerJson implements ParserInterface
         $packageGroups = $this->packageConfig->getPackageGroupsForParser($type);
 
         foreach ($packageGroups as $packageGroup) {
+            if (!key_exists($packageGroup['name'], $this->parsedData)) {
+                $this->parsedData[$packageGroup['name']] = [];
+            }
+
             $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($section));
             foreach ($matchedPackagesNames as $matchedPackageName) {
                 $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $section[$matchedPackageName]];
