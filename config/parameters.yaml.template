@@ -1,6 +1,6 @@
 parameters:
   app.config:
-    providerType: gitRepository #Supported: gitlabApi, gitRepository
+    providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
     parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock
     writerType: xlsx #Supported: xlsx
     gitlab:
@@ -31,4 +31,4 @@ parameters:
       - name: project2
         directory: var/repositories/project2
         remote: git@git.com:projects/project2.git
-        branch: master #Format supported for provider: gitlabApi
+        branch: master #Format supported for provider: gitlabApiFiles, gitlabApiArchive

@@ -13,6 +13,7 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
+    "ext-zip": "*",
     "czproject/git-php": "^4.0",
     "php-curl-class/php-curl-class": "^9.1",
     "phpoffice/phpspreadsheet": "^1.9",

@@ -14,8 +14,15 @@ services:
     arguments:
       appDir: '%app.dir%'
 
-  provider.gitlabApi.service:
-    class: \EvilStudio\ComposerParser\Service\Provider\GitlabApi
+  provider.gitlabApiFiles.service:
+    class: \EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles
+    arguments:
+      appDir: '%app.dir%'
+      gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
+      gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
+
+  provider.gitlabApiArchive.service:
+    class: \EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive
     arguments:
       appDir: '%app.dir%'
       gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
@@ -27,7 +34,8 @@ services:
       providerType: "@=container.getParameter('app.config')['providerType']"
       providers:
         gitRepository: '@provider.gitRepository.service'
-        gitlabApi: '@provider.gitlabApi.service'
+        gitlabApiFiles: '@provider.gitlabApiFiles.service'
+        gitlabApiArchive: '@provider.gitlabApiArchive.service'
 
   parser.composerJson.service:
     class: \EvilStudio\ComposerParser\Service\Parser\ComposerJson

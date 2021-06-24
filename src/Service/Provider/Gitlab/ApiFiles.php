@@ -1,49 +1,27 @@
 <?php
 
-namespace EvilStudio\ComposerParser\Service\Provider;
+namespace EvilStudio\ComposerParser\Service\Provider\Gitlab;
 
 use Curl\Curl;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
-class GitlabApi extends AbstractProvider
+class ApiFiles extends AbstractGitlab
 {
     const GITLAB_API_DOWNLOAD_FILE_URL = '%s/api/v4/projects/%s/repository/files/%s/raw?ref=%s';
 
-    /**
-     * @var string
-     */
-    protected $gitlabUrl;
-
-    /**
-     * @var string
-     */
-    protected $gitlabApiToken;
-
-    /**
-     * GitlabApi constructor.
-     * @param string $appDir
-     * @param string $gitlabUrl
-     * @param string $gitlabApiToken
-     */
-    public function __construct(string $appDir, string $gitlabUrl, string $gitlabApiToken)
-    {
-        parent::__construct($appDir);
-
-        $this->gitlabUrl = $gitlabUrl;
-        $this->gitlabApiToken = $gitlabApiToken;
-    }
+    const FILE_LIST = ['composer.json', 'composer.lock'];
 
     /**
      * @param RepositoryInterface $repository
      */
     public function load(RepositoryInterface $repository): void
     {
-        $this->localRepositoryDirectory = sprintf('%s/%s', $this->appDir, $repository->getDirectory());
+        $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
         if (!file_exists($this->localRepositoryDirectory)) {
             mkdir($this->localRepositoryDirectory, 0777, true);
         }
 
-        foreach (['composer.json', 'composer.lock'] as $fileName) {
+        foreach (self::FILE_LIST as $fileName) {
             $this->downloadFile($repository, $fileName);
         }
     }

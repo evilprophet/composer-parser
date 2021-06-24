@@ -17,6 +17,11 @@ interface RepositoryInterface
     /**
      * @return string
      */
+    public function getRemoteProjectName(): string;
+
+    /**
+     * @return string
+     */
     public function getRemote(): string;
 
     /**

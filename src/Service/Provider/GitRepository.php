@@ -32,7 +32,7 @@ class GitRepository extends AbstractProvider
      */
     public function load(RepositoryInterface $repository): void
     {
-        $this->localRepositoryDirectory = sprintf('%s/%s', $this->appDir, $repository->getDirectory());
+        $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
 
         try {
             $this->gitRepository = $this->git->cloneRepository($repository->getRemote(), $this->localRepositoryDirectory);

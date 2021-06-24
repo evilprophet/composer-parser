@@ -19,6 +19,11 @@ class Repository implements RepositoryInterface
     /**
      * @var string
      */
+    protected $remoteProjectName;
+
+    /**
+     * @var string
+     */
     protected $remote;
 
     /**
@@ -44,6 +49,7 @@ class Repository implements RepositoryInterface
 
         preg_match('/:(.*\/.*)\.git/', $this->remote, $repositoryName);
         $this->repositoryName = $repositoryName[1];
+        $this->remoteProjectName = explode('/', $this->repositoryName)[1];
     }
 
     /**
@@ -60,6 +66,14 @@ class Repository implements RepositoryInterface
     public function getRepositoryName(): string
     {
         return $this->repositoryName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRemoteProjectName(): string
+    {
+        return $this->remoteProjectName;
     }
 
     /**
