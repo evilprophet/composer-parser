@@ -6,6 +6,7 @@ parameters:
     gitlab:
       url: https://gitlab.com
       apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
+    ansibleVaultPassword: #Used by provider gitlabApiArchive to decrypt auth.json.encrypted if present
 
   package.config:
     #Options available in parser composerJsonAndLock

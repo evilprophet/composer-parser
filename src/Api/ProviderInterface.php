@@ -7,6 +7,7 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 interface ProviderInterface
 {
     const LOCAL_REPOSITORY_DIRECTORY_PATH = '%s/%s';
+
     const COMPOSER_JSON_PATH = '%s/composer.json';
     const COMPOSER_LOCK_PATH = '%s/composer.lock';
 

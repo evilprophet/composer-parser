@@ -27,6 +27,7 @@ services:
       appDir: '%app.dir%'
       gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
       gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
+      ansibleVaultPassword: "@=container.getParameter('app.config')['ansibleVaultPassword']"
 
   providerManager.service:
     class: \EvilStudio\ComposerParser\Service\Provider\ProviderManager
