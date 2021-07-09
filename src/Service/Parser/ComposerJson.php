@@ -73,7 +73,7 @@ class ComposerJson implements ParserInterface
      * @param ProviderInterface $provider
      * @param array $projectNamesGrouped
      */
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped)
+    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
     {
         $provider->load($repository);
         $composerJsonContent = $provider->getComposerJsonContent();
@@ -84,15 +84,14 @@ class ComposerJson implements ParserInterface
      * @param array $composerJsonContent
      * @param array $projectNamesGrouped
      * @param string $projectName
-     * @return array
      */
-    protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): array
+    protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
     {
-        $requireSection = $composerJsonContent['require'] ?? [];
-        $replaceSection = $composerJsonContent['replace'] ?? [];
+        $requireGroup = $composerJsonContent['require'] ?? [];
+        $replaceGroup = $composerJsonContent['replace'] ?? [];
 
-        $this->parseSection($requireSection, $projectName, PackageConfigInterface::COMPOSER_TYPE_REQUIRE);
-        $this->parseSection($replaceSection, $projectName, PackageConfigInterface::COMPOSER_TYPE_REPLACE);
+        $this->parseGroup($requireGroup, $projectName, PackageConfigInterface::COMPOSER_TYPE_REQUIRE);
+        $this->parseGroup($replaceGroup, $projectName, PackageConfigInterface::COMPOSER_TYPE_REPLACE);
 
         foreach ($this->parsedData as &$group) {
             ksort($group);
@@ -100,28 +99,26 @@ class ComposerJson implements ParserInterface
                 $item = array_merge($projectNamesGrouped, $item);
             }
         }
-
-        return $this->parsedData;
     }
 
     /**
-     * @param array $section
+     * @param array $group
      * @param string $projectName
-     * @param string $type
+     * @param string $groupType
      */
-    protected function parseSection(array $section, string $projectName, string $type)
+    protected function parseGroup(array $group, string $projectName, string $groupType)
     {
-        $packageGroups = $this->packageConfig->getPackageGroupsForParser($type);
+        $packageGroups = $this->packageConfig->getPackageGroupsForParser($groupType);
 
         foreach ($packageGroups as $packageGroup) {
             if (!key_exists($packageGroup['name'], $this->parsedData)) {
                 $this->parsedData[$packageGroup['name']] = [];
             }
 
-            $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($section));
+            $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($group));
             foreach ($matchedPackagesNames as $matchedPackageName) {
-                $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $section[$matchedPackageName]];
-                unset($section[$matchedPackageName]);
+                $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $group[$matchedPackageName]];
+                unset($group[$matchedPackageName]);
             }
         }
     }

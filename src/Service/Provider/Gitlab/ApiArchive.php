@@ -21,6 +21,10 @@ class ApiArchive extends AbstractGitlab
         $this->unpackArchive($repository, $archivePath);
     }
 
+    /**
+     * @param RepositoryInterface $repository
+     * @return string|null
+     */
     protected function downloadArchive(RepositoryInterface $repository): ?string
     {
         $fileUrl = sprintf(
@@ -44,7 +48,11 @@ class ApiArchive extends AbstractGitlab
         return $archivePath;
     }
 
-    protected function unpackArchive(RepositoryInterface $repository, string $archivePath)
+    /**
+     * @param RepositoryInterface $repository
+     * @param string $archivePath
+     */
+    protected function unpackArchive(RepositoryInterface $repository, string $archivePath): void
     {
         $extractDirectory = dirname($repository->getDirectory());
 

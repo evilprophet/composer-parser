@@ -54,7 +54,7 @@ class Xlsx implements WriterInterface
     {
         $this->prepareSpreadsheet();
 
-        $this->prepareHeader($parsedData->getProjectCodes());
+        $this->prepareHeader($parsedData->getprojectNames());
         $this->prepareData($parsedData->getProjectsData());
 
         $this->writeSpreadsheet();
@@ -77,9 +77,9 @@ class Xlsx implements WriterInterface
     }
 
     /**
-     * @param array $projectCodes
+     * @param array $projectNames
      */
-    protected function prepareHeader(array $projectCodes): void
+    protected function prepareHeader(array $projectNames): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
 
@@ -88,8 +88,8 @@ class Xlsx implements WriterInterface
         $sheet->setCellValueByColumnAndRow(1, 1, sprintf('Last update: %s', $currentDate));
 
         $column = 2;
-        foreach ($projectCodes as $projectCode) {
-            $sheet->setCellValueByColumnAndRow($column, 1, $projectCode);
+        foreach ($projectNames as $projectName) {
+            $sheet->setCellValueByColumnAndRow($column, 1, $projectName);
             $sheet->getStyleByColumnAndRow($column, 1)->applyFromArray($this->getHeaderStyle());
             $sheet->getColumnDimensionByColumn($column)->setWidth(10);
             $column++;
@@ -107,6 +107,10 @@ class Xlsx implements WriterInterface
         $column = 1;
         $row = 2;
         foreach ($packageGroups as $packageGroup) {
+            if (!array_key_exists($packageGroup['name'], $parsedComposerJson)) {
+                continue;
+            }
+
             $currentGroup = $parsedComposerJson[$packageGroup['name']];
 
             $sheet->setCellValueByColumnAndRow($column, $row, $packageGroup['name']);

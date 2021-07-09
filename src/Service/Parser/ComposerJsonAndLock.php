@@ -13,22 +13,22 @@ class ComposerJsonAndLock extends ComposerJson
      * @param ProviderInterface $provider
      * @param array $projectNamesGrouped
      */
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped)
+    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
     {
         parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
         $composerLockContent = $provider->getComposerLockContent();
         if ($this->packageConfig->includeInstalledVersion() && !empty($composerLockContent)) {
             $this->parseComposerLockFile($composerLockContent, $repository->getProjectName());
+            $this->checkObservedPackages($composerLockContent, $repository->getProjectName());
         }
     }
 
     /**
      * @param array $composerLockContent
      * @param string $projectName
-     * @return array
      */
-    protected function parseComposerLockFile(array $composerLockContent, string $projectName): array
+    protected function parseComposerLockFile(array $composerLockContent, string $projectName): void
     {
         $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
         $packagesInstalled = $composerLockContent['packages'];
@@ -49,18 +49,54 @@ class ComposerJsonAndLock extends ComposerJson
                     continue;
                 }
 
-                switch ($this->packageConfig->installedVersionDisplayedIn()) {
-                    case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_VALUE:
-                        $this->parsedData[$packageGroupName][$packageName][$projectName]['value'] = $packageInstalled['version'];
-                        break;
-                    case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_COMMENT:
-                        $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $packageInstalled['version']);
-                        $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
-                        break;
-                }
+                $this->addInstalledVersion($packageGroupName, $packageName, $projectName, $packageInstalled['version']);
             }
         }
+    }
 
-        return $this->parsedData;
+    /**
+     * @param array $composerLockContent
+     * @param string $projectName
+     */
+    protected function checkObservedPackages(array $composerLockContent, string $projectName): void
+    {
+        $packageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_OBSERVED);
+        $observedPackages = $this->packageConfig->getObservedPackages();
+        $packagesInstalled = $composerLockContent['packages'];
+
+        foreach ($packageGroups as $packageGroup) {
+            $packageGroupName = $packageGroup['name'];
+            $matchedPackagesNames = preg_grep($packageGroup['regex'], $observedPackages);
+
+            foreach ($matchedPackagesNames as $matchedPackageName) {
+                $packageInstalledIndex = array_search($matchedPackageName, array_column($packagesInstalled, 'name'));
+                if (!$packageInstalledIndex) {
+                    continue;
+                }
+
+                $packageInstalled = $packagesInstalled[$packageInstalledIndex];
+                $this->parsedData[$packageGroupName][$matchedPackageName][$projectName]['value'] = '';
+                $this->addInstalledVersion($packageGroupName, $matchedPackageName, $projectName, $packageInstalled['version']);
+            }
+        }
+    }
+
+    /**
+     * @param $packageGroupName
+     * @param $packageName
+     * @param $projectName
+     * @param $version
+     */
+    protected function addInstalledVersion($packageGroupName, $packageName, $projectName, $version): void
+    {
+        switch ($this->packageConfig->installedVersionDisplayedIn()) {
+            case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_VALUE:
+                $this->parsedData[$packageGroupName][$packageName][$projectName]['value'] = $version;
+                break;
+            case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_COMMENT:
+                $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $version);
+                $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
+                break;
+        }
     }
 }

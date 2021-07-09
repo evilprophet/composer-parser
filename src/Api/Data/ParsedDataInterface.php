@@ -12,5 +12,5 @@ interface ParsedDataInterface
     /**
      * @return array
      */
-    public function getProjectCodes():array;
+    public function getprojectNames():array;
 }

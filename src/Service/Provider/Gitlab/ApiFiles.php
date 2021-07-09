@@ -26,6 +26,10 @@ class ApiFiles extends AbstractGitlab
         }
     }
 
+    /**
+     * @param RepositoryInterface $repository
+     * @param $fileName
+     */
     protected function downloadFile(RepositoryInterface $repository, $fileName): void
     {
         $fileUrl = sprintf(

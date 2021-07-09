@@ -14,25 +14,31 @@ class ParsedData implements ParsedDataInterface
     /**
      * @vararray
      */
-    protected $projectCodes;
+    protected $projectNames;
 
     /**
      * @param array $projectData
-     * @param array $projectCodes
+     * @param array $projectNames
      */
-    public function __construct(array $projectData, array $projectCodes)
+    public function __construct(array $projectData, array $projectNames)
     {
         $this->projectData = $projectData;
-        $this->projectCodes = $projectCodes;
+        $this->projectNames = $projectNames;
     }
 
+    /**
+     * @return array
+     */
     public function getProjectsData(): array
     {
         return $this->projectData;
     }
 
-    public function getProjectCodes(): array
+    /**
+     * @return array
+     */
+    public function getprojectNames(): array
     {
-        return $this->projectCodes;
+        return $this->projectNames;
     }
 }

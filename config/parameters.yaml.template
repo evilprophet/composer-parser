@@ -13,9 +13,13 @@ parameters:
     installedVersionDisplayedIn: comment #Supported: comment, value
 
     packageGroups:
-      - { name: Group1, parserPriority: 10, writerOrder: 30, section: require, regex: /.*group1.*/}
-      - { name: Group2, parserPriority: 20, writerOrder: 20, section: require, regex: /.*group2*/ }
-      - { name: Group3, parserPriority: 30, writerOrder: 20, section: replace, regex: /.*/ }
+      - { name: Group1, parserPriority: 10, writerOrder: 20, groupType: require,  regex: /.*group1.*/}
+      - { name: Group2, parserPriority: 20, writerOrder: 10, groupType: require,  regex: /.*group2*/ }
+      - { name: Group3, parserPriority: 0,  writerOrder: 30, groupType: replace,  regex: /.*/ }
+      - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ } #groupType available in parser composerJsonAndLock
+    observedPackages: #Options for groupType observed
+      - vendor/package_name1
+      - vendor/package_name2
 
   writer.config:
     local:

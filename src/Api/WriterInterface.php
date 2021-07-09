@@ -6,7 +6,6 @@ use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 
 interface WriterInterface
 {
-
     /**
      * @param ParsedDataInterface $parsedData
      */
