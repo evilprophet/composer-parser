@@ -13,8 +13,6 @@ use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
 class ComposerJson implements ParserInterface
 {
-    const COMMENT_INSTALLED_VERSION = 'Installed version: %s';
-
     /**
      * @var PackageConfigInterface
      */
@@ -58,7 +56,7 @@ class ComposerJson implements ParserInterface
 
         $provider = $this->providerManager->getProvider();
         $projectNames = $this->repositoryList->getProjectNames();
-        $projectNamesGrouped = array_fill_keys($projectNames, ['value' => '']);
+        $projectNamesGrouped = array_fill_keys($projectNames, ['value' => '', 'comment' => '']);
 
         /** @var RepositoryInterface $repository */
         foreach ($this->repositoryList->getList() as $repository) {
@@ -117,7 +115,7 @@ class ComposerJson implements ParserInterface
 
             $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($group));
             foreach ($matchedPackagesNames as $matchedPackageName) {
-                $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $group[$matchedPackageName]];
+                $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $group[$matchedPackageName], 'comment' => ''];
                 unset($group[$matchedPackageName]);
             }
         }

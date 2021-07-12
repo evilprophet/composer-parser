@@ -5,6 +5,7 @@ namespace EvilStudio\ComposerParser\Service\Provider\Gitlab;
 use Curl\Curl;
 use DanielNess\Ansible\Vault\Decrypter;
 use DanielNess\Ansible\Vault\Decrypter\Exception\DecryptionException;
+use DanielNess\Ansible\Vault\Exception\AnsibleVaultException;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -100,11 +101,18 @@ class ApiArchive extends AbstractGitlab
 
         try {
             $authJsonContent = Decrypter::decryptString($authJsonEncryptedContent, $this->ansibleVaultPassword);
-        } catch (DecryptionException $e) {
+        } catch (DecryptionException | AnsibleVaultException | Decrypter\Exception\InvalidPayloadException $e) {
             return;
         }
 
         file_put_contents($authJsonPath, $authJsonContent);
     }
 
+    /**
+     * @return string
+     */
+    public function getLocalRepositoryDirectory(): string
+    {
+        return $this->localRepositoryDirectory;
+    }
 }

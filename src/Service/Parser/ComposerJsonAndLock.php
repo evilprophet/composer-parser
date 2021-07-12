@@ -8,6 +8,8 @@ use EvilStudio\ComposerParser\Api\ProviderInterface;
 
 class ComposerJsonAndLock extends ComposerJson
 {
+    const COMMENT_INSTALLED_VERSION = "Installed version: %s\n";
+
     /**
      * @param RepositoryInterface $repository
      * @param ProviderInterface $provider
@@ -95,7 +97,7 @@ class ComposerJsonAndLock extends ComposerJson
                 break;
             case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_COMMENT:
                 $comment = sprintf(self::COMMENT_INSTALLED_VERSION, $version);
-                $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] = $comment;
+                $this->parsedData[$packageGroupName][$packageName][$projectName]['comment'] .= $comment;
                 break;
         }
     }

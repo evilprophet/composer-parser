@@ -52,6 +52,13 @@ services:
       repositoryList: '@repositoryList.model'
       providerManager: '@providerManager.service'
 
+  parser.composerFull.service:
+    class: \EvilStudio\ComposerParser\Service\Parser\ComposerFull
+    arguments:
+      packageConfig: '@packageConfig.model'
+      repositoryList: '@repositoryList.model'
+      providerManager: '@providerManager.service'
+
   parserManager.service:
     class: \EvilStudio\ComposerParser\Service\Parser\ParserManager
     arguments:
@@ -59,6 +66,7 @@ services:
       parsers:
         composerJson: '@parser.composerJson.service'
         composerJsonAndLock: '@parser.composerJsonAndLock.service'
+        composerFull: '@parser.composerFull.service'
 
   writer.xlsx.service:
     class: \EvilStudio\ComposerParser\Service\Writer\Xlsx

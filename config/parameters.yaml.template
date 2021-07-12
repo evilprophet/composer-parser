@@ -1,7 +1,7 @@
 parameters:
   app.config:
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
-    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock
+    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull(it can be used only with gitlabApiArchive)
     writerType: xlsx #Supported: xlsx
     gitlab:
       url: https://gitlab.com
