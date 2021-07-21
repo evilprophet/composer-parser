@@ -32,7 +32,10 @@ class ComposerJsonAndLock extends ComposerJson
      */
     protected function parseComposerLockFile(array $composerLockContent, string $projectName): void
     {
-        $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
+        $skippedPackageGroups = array_merge(
+            $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE),
+            $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_PATCHSET)
+        );
         $packagesInstalled = $composerLockContent['packages'];
 
         foreach ($this->parsedData as $packageGroupName => $packageGroup) {

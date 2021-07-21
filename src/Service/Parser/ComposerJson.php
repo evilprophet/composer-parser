@@ -76,6 +76,7 @@ class ComposerJson implements ParserInterface
         $provider->load($repository);
         $composerJsonContent = $provider->getComposerJsonContent();
         $this->parseComposerJsonFile($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
+        $this->parsePatchSet($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
     }
 
     /**
@@ -117,6 +118,37 @@ class ComposerJson implements ParserInterface
             foreach ($matchedPackagesNames as $matchedPackageName) {
                 $this->parsedData[$packageGroup['name']][$matchedPackageName][$projectName] = ['value' => $group[$matchedPackageName], 'comment' => ''];
                 unset($group[$matchedPackageName]);
+            }
+        }
+    }
+
+    /**
+     * Function parsing data from extra/patchset section in composer.json where patches applied by mageops/php-composer-plugin-patchset are configured
+     * @param array $composerJsonContent
+     * @param array $projectNamesGrouped
+     * @param string $projectName
+     */
+    protected function parsePatchSet(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
+    {
+        if (!isset($composerJsonContent['extra']['patchset'])) {
+            return;
+        }
+
+        $packageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_PATCHSET);
+        $patchSet = $composerJsonContent['extra']['patchset'];
+
+        foreach ($packageGroups as $packageGroup) {
+            $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($patchSet));
+            foreach ($matchedPackagesNames as $matchedPackageName) {
+                $patches = $patchSet[$matchedPackageName];
+
+                foreach ($patches as $patch) {
+                    $versionConstraint = $patch['version-constraint'] ?? '*';
+                    $patchName = explode('/', $patch['filename']);
+                    $patchName = end($patchName);
+
+                    $this->parsedData[$packageGroup['name']][$patchName][$projectName] = ['value' => $versionConstraint, 'comment' => ''];
+                }
             }
         }
     }

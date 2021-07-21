@@ -6,6 +6,7 @@ interface PackageConfigInterface
 {
     const COMPOSER_TYPE_REQUIRE = 'require';
     const COMPOSER_TYPE_REPLACE = 'replace';
+    const COMPOSER_TYPE_PATCHSET = 'patchset';
     const COMPOSER_TYPE_OBSERVED = 'observed';
 
     const INSTALLED_VERSION_DISPLAYED_IN_COMMENT = 'comment';
