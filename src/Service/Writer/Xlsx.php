@@ -63,6 +63,9 @@ class Xlsx implements WriterInterface
     protected function prepareSpreadsheet(): void
     {
         $this->spreadsheet = new Spreadsheet();
+
+        $this->spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
+        $this->spreadsheet->getDefaultStyle()->getFont()->setSize(10);
     }
 
     /**
