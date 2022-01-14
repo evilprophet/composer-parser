@@ -2,8 +2,8 @@
 
 namespace EvilStudio\ComposerParser\Command;
 
-use EvilStudio\ComposerParser\Api\ParserInterface;
-use EvilStudio\ComposerParser\Api\WriterInterface;
+use EvilStudio\ComposerParser\Exception\ParserTypeNotSupportedException;
+use EvilStudio\ComposerParser\Exception\WriterTypeNotSupportedException;
 use EvilStudio\ComposerParser\Service\Parser\ParserManager;
 use EvilStudio\ComposerParser\Service\Writer\WriterManager;
 use Symfony\Component\Console\Command\Command;
@@ -47,14 +47,14 @@ class Run extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int
+     * @throws ParserTypeNotSupportedException
+     * @throws WriterTypeNotSupportedException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var ParserInterface $parser */
         $parser = $this->parserManager->getParser();
         $parsedData = $parser->execute();
 
-        /** @var WriterInterface $writer */
         $writer = $this->writerManager->getWriter();
         $writer->execute($parsedData);
 

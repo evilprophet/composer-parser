@@ -8,6 +8,7 @@ use DanielNess\Ansible\Vault\Decrypter\Exception\DecryptionException;
 use DanielNess\Ansible\Vault\Exception\AnsibleVaultException;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use ZipArchive;
 
 class ApiArchive extends AbstractGitlab
 {
@@ -75,7 +76,7 @@ class ApiArchive extends AbstractGitlab
     {
         $extractDirectory = dirname($repository->getDirectory());
 
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         if ($zip->open($archivePath) !== true) {
             return;
         }

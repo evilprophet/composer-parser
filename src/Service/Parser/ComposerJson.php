@@ -8,6 +8,7 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
+use EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException;
 use EvilStudio\ComposerParser\Model\ParsedData;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
@@ -48,7 +49,7 @@ class ComposerJson implements ParserInterface
 
     /**
      * @return ParsedDataInterface
-     * @throws \EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException
+     * @throws ProviderTypeNotSupportedException
      */
     public function execute(): ParsedDataInterface
     {
@@ -58,7 +59,6 @@ class ComposerJson implements ParserInterface
         $projectNames = $this->repositoryList->getProjectNames();
         $projectNamesGrouped = array_fill_keys($projectNames, ['value' => '', 'comment' => '']);
 
-        /** @var RepositoryInterface $repository */
         foreach ($this->repositoryList->getList() as $repository) {
             $this->executePerRepository($repository, $provider, $projectNamesGrouped);
         }

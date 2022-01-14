@@ -4,6 +4,11 @@ services:
     arguments:
       packageConfigData: "@=container.getParameter('package.config')"
 
+  stylingConfig.model:
+    class: \EvilStudio\ComposerParser\Model\StylingConfig
+    arguments:
+      packageConfigData: "@=container.getParameter('writer.config')['styling']"
+
   repositoryList.model:
     class: \EvilStudio\ComposerParser\Model\RepositoryList
     arguments:
@@ -74,6 +79,7 @@ services:
       fileName: "@=container.getParameter('writer.config')['local']['fileName']"
       fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
       packageConfig: '@packageConfig.model'
+      stylingConfig: '@stylingConfig.model'
 
   writerManager.service:
     class: \EvilStudio\ComposerParser\Service\Writer\WriterManager

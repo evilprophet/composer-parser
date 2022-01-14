@@ -37,7 +37,7 @@ class ParsedData implements ParsedDataInterface
     /**
      * @return array
      */
-    public function getprojectNames(): array
+    public function getProjectNames(): array
     {
         return $this->projectNames;
     }

@@ -39,7 +39,7 @@ class ComposerJsonAndLock extends ComposerJson
         $packagesInstalled = $composerLockContent['packages'];
 
         foreach ($this->parsedData as $packageGroupName => $packageGroup) {
-            if (array_search($packageGroupName, array_column($skippedPackageGroups, 'name')) !== false) {
+            if (in_array($packageGroupName, array_column($skippedPackageGroups, 'name'))) {
                 continue;
             }
 

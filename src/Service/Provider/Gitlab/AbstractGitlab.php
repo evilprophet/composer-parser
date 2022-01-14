@@ -2,9 +2,9 @@
 
 namespace EvilStudio\ComposerParser\Service\Provider\Gitlab;
 
-use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
+use EvilStudio\ComposerParser\Service\Provider\AbstractProvider;
 
-abstract class AbstractGitlab extends \EvilStudio\ComposerParser\Service\Provider\AbstractProvider
+abstract class AbstractGitlab extends AbstractProvider
 {
     /**
      * @var string

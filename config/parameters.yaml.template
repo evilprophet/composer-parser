@@ -15,7 +15,7 @@ parameters:
 
     packageGroups:
       - { name: Group1, parserPriority: 10, writerOrder: 20, groupType: require,  regex: /.*group1.*/}
-      - { name: Group2, parserPriority: 20, writerOrder: 10, groupType: require,  regex: /.*group2*/ }
+      - { name: Group2, parserPriority: 20, writerOrder: 10, groupType: require,  regex: /.*group2.*/ }
       - { name: Group3, parserPriority: 0,  writerOrder: 30, groupType: replace,  regex: /.*/ }
       - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ } #groupType available in parser composerJsonAndLock
       - { name: Group5, parserPriority: 0,  writerOrder: 40, groupType: patchset, regex: /.*/ } #groupType available in parser composerJsonAndLock
@@ -27,6 +27,10 @@ parameters:
     local:
       fileName: "projects-{date}" #Without file extension
       fileDirectory: var/results
+    styling:
+      cellColorMapping:
+        - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000}
+        - { packageNameRegex: /^package_name1/, versionRegex: /((?!2\.4\.3).)*/, color: FF0000}
 
   repository.config:
     repositoryList:

@@ -4,9 +4,12 @@ namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
+use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
+use PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
 
 class Xlsx implements WriterInterface
@@ -34,32 +37,42 @@ class Xlsx implements WriterInterface
     protected $packageConfig;
 
     /**
+     * @var StylingConfigInterface
+     */
+    protected $stylingConfig;
+
+    /**
      * Xlsx constructor.
      * @param string $fileName
      * @param string $fileDirectory
      * @param PackageConfigInterface $packageConfig
+     * @param StylingConfigInterface $stylingConfig
      */
-    public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig)
+    public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig, StylingConfigInterface $stylingConfig)
     {
         $this->fileName = $fileName;
         $this->fileDirectory = $fileDirectory;
         $this->packageConfig = $packageConfig;
+        $this->stylingConfig = $stylingConfig;
     }
 
     /**
      * @param ParsedDataInterface $parsedData
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws WriterException|PhpSpreadsheetException
      */
     public function execute(ParsedDataInterface $parsedData): void
     {
         $this->prepareSpreadsheet();
 
-        $this->prepareHeader($parsedData->getprojectNames());
+        $this->prepareHeader($parsedData->getProjectNames());
         $this->prepareData($parsedData->getProjectsData());
 
         $this->writeSpreadsheet();
     }
 
+    /**
+     * @throws PhpSpreadsheetException
+     */
     protected function prepareSpreadsheet(): void
     {
         $this->spreadsheet = new Spreadsheet();
@@ -69,7 +82,7 @@ class Xlsx implements WriterInterface
     }
 
     /**
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws WriterException
      */
     protected function writeSpreadsheet(): void
     {
@@ -127,7 +140,7 @@ class Xlsx implements WriterInterface
                 foreach ($packageRow as $projectName => $versionCell) {
                     $sheet->setCellValueByColumnAndRow($column, $row, $versionCell['value']);
 
-                    $style = $this->getPackageVersionCellStyle($versionCell['value']);
+                    $style = $this->getPackageVersionCellStyle($versionCell['value'], $packageName);
                     if (!empty($style)) {
                         $sheet->getStyleByColumnAndRow($column, $row)->applyFromArray($style);
                     }
@@ -191,27 +204,41 @@ class Xlsx implements WriterInterface
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => [
-                    'argb' => '999999',
+                    'rgb' => $this->stylingConfig->getGroupHeaderBackgroundColor(),
                 ],
             ],
         ];
     }
 
     /**
+     * @param string $versionCell
+     * @param string $packageName
      * @return array
      */
-    protected function getPackageVersionCellStyle($versionCell): array
+    protected function getPackageVersionCellStyle(string $versionCell, string $packageName): array
     {
-        if (!preg_match('/(dev-.*|.*-dev)/', $versionCell)) {
-            return [];
+        $styling = [];
+        $cellStyleMapping = $this->stylingConfig->getCellColorMapping();
+
+        foreach ($cellStyleMapping as $cellStyle) {
+            if (isset($cellStyle['packageNameRegex']) && !preg_match($cellStyle['packageNameRegex'], $packageName)) {
+                continue;
+            }
+
+            if (!preg_match($cellStyle['versionRegex'], $versionCell)) {
+                continue;
+            }
+
+            if (isset($cellStyle['color'])) {
+                $styling['font']['color']['rgb'] = $cellStyle['color'];
+            }
+
+            if (isset($cellStyle['backgroundColor'])) {
+                $styling['fill']['fillType'] = Fill::FILL_SOLID;
+                $styling['fill']['startColor']['rgb'] = $cellStyle['backgroundColor'];
+            }
         }
 
-        return [
-            'font' => [
-                'color' => [
-                    'argb' => 'FF8000',
-                ],
-            ],
-        ];
+        return $styling;
     }
 }

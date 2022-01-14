@@ -4,6 +4,7 @@ namespace EvilStudio\ComposerParser;
 
 use EvilStudio\ComposerParser\Command\Run;
 use EvilStudio\ComposerParser\Command\Cleanup;
+use Exception;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
@@ -13,9 +14,9 @@ class Application extends \Symfony\Component\Console\Application
     /**
      * @param string $name
      * @param string $version
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct($name = 'Composer Parser', $version = '2.0')
+    public function __construct(string $name = 'Composer Parser', string $version = '2.0')
     {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('app.dir', __DIR__ . '/..');

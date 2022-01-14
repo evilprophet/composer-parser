@@ -2,7 +2,6 @@
 
 namespace EvilStudio\ComposerParser\Service;
 
-use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -26,7 +25,6 @@ class Cleaner
     {
         $filesystem = new Filesystem();
 
-        /** @var RepositoryInterface $repository */
         foreach ($this->repositoryList->getList() as $repository) {
             $filesystem->remove($repository->getDirectory());
         }

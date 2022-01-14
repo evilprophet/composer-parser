@@ -2,7 +2,9 @@
 
 namespace EvilStudio\ComposerParser\Exception;
 
-class WriterTypeNotSupportedException extends \Exception
+use Exception;
+
+class WriterTypeNotSupportedException extends Exception
 {
 
 }

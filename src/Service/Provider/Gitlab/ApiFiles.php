@@ -48,6 +48,5 @@ class ApiFiles extends AbstractGitlab
             $filePath = $this->localRepositoryDirectory . DIRECTORY_SEPARATOR . $fileName;
             file_put_contents($filePath, $curl->response);
         }
-
     }
 }

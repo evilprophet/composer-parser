@@ -2,8 +2,6 @@
 
 namespace EvilStudio\ComposerParser\Api\Data;
 
-use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
-
 interface RepositoryListInterface
 {
     /**

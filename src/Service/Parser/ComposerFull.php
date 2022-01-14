@@ -41,7 +41,7 @@ class ComposerFull extends ComposerJsonAndLock
 
         $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
         foreach ($this->parsedData as $packageGroupName => $packageGroup) {
-            if (array_search($packageGroupName, array_column($skippedPackageGroups, 'name')) !== false) {
+            if (in_array($packageGroupName, array_column($skippedPackageGroups, 'name'))) {
                 continue;
             }
 
