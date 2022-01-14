@@ -14,8 +14,7 @@ class StylingConfig implements StylingConfigInterface
     /**
      * @var array
      */
-    protected $cellColorMapping;
-
+    protected $cellStyleMapping;
 
     /**
      * StylingConfig constructor.
@@ -24,7 +23,7 @@ class StylingConfig implements StylingConfigInterface
     public function __construct(array $stylingConfigData)
     {
         $this->groupHeaderBackgroundColor = (string)$stylingConfigData['groupHeaderBackgroundColor'] ?? '';
-        $this->cellColorMapping = (array)$stylingConfigData['cellColorMapping'] ?? '';
+        $this->cellStyleMapping = (array)$stylingConfigData['cellStyleMapping'] ?? '';
     }
 
     /**
@@ -38,8 +37,8 @@ class StylingConfig implements StylingConfigInterface
     /**
      * @return array
      */
-    public function getCellColorMapping(): array
+    public function getCellStyleMapping(): array
     {
-        return $this->cellColorMapping;
+        return $this->cellStyleMapping;
     }
 }

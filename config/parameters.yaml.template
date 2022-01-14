@@ -28,7 +28,7 @@ parameters:
       fileName: "projects-{date}" #Without file extension
       fileDirectory: var/results
     styling:
-      cellColorMapping:
+      cellStyleMapping:
         - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000}
         - { packageNameRegex: /^package_name1/, versionRegex: /((?!2\.4\.3).)*/, color: FF0000}
 

@@ -218,7 +218,7 @@ class Xlsx implements WriterInterface
     protected function getPackageVersionCellStyle(string $versionCell, string $packageName): array
     {
         $styling = [];
-        $cellStyleMapping = $this->stylingConfig->getCellColorMapping();
+        $cellStyleMapping = $this->stylingConfig->getCellStyleMapping();
 
         foreach ($cellStyleMapping as $cellStyle) {
             if (isset($cellStyle['packageNameRegex']) && !preg_match($cellStyle['packageNameRegex'], $packageName)) {

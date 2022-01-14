@@ -12,5 +12,5 @@ interface StylingConfigInterface
     /**
      * @return array
      */
-    public function getCellColorMapping(): array;
+    public function getCellStyleMapping(): array;
 }
