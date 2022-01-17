@@ -17,8 +17,8 @@ parameters:
       - { name: Group1, parserPriority: 10, writerOrder: 20, groupType: require,  regex: /.*group1.*/}
       - { name: Group2, parserPriority: 20, writerOrder: 10, groupType: require,  regex: /.*group2.*/ }
       - { name: Group3, parserPriority: 0,  writerOrder: 30, groupType: replace,  regex: /.*/ }
-      - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ } #groupType available in parser composerJsonAndLock
-      - { name: Group5, parserPriority: 0,  writerOrder: 40, groupType: patchset, regex: /.*/ } #groupType available in parser composerJsonAndLock
+      - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ } #groupType not available with parser composerJson
+      - { name: Group5, parserPriority: 0,  writerOrder: 40, groupType: patchset, regex: /.*/ } #groupType not available with parser composerJson
     observedPackages: #Options for groupType observed
       - vendor/package_name1
       - vendor/package_name2
