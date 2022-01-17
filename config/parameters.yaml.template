@@ -1,7 +1,7 @@
 parameters:
   app.config:
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
-    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull(it can be used only with gitlabApiArchive)
+    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (it can be used only with gitlabApiArchive)
     writerType: xlsx #Supported: xlsx
     gitlab:
       url: https://gitlab.com
@@ -9,7 +9,7 @@ parameters:
     ansibleVaultPassword: #Used by provider gitlabApiArchive to decrypt auth.json.encrypted if present
 
   package.config:
-    #Options available in parser composerJsonAndLock
+    #Options not available with parser composerJson
     includeInstalledVersion: false
     installedVersionDisplayedIn: comment #Supported: comment, value
 
@@ -37,8 +37,8 @@ parameters:
       - name: project1
         directory: var/repositories/project1
         remote: git@git.com:projects/project1.git
-        branch: origin/master #Format supported for provider: gitRepository
+        branch: origin/master #Format for provider: gitRepository
       - name: project2
         directory: var/repositories/project2
         remote: git@git.com:projects/project2.git
-        branch: master #Format supported for provider: gitlabApiFiles, gitlabApiArchive
+        branch: master #Format for provider: gitlabApiFiles, gitlabApiArchive
