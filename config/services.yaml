@@ -7,7 +7,7 @@ services:
   stylingConfig.model:
     class: \EvilStudio\ComposerParser\Model\StylingConfig
     arguments:
-      packageConfigData: "@=container.getParameter('writer.config')['styling']"
+      stylingConfigData: "@=container.getParameter('writer.config')['styling']"
 
   repositoryList.model:
     class: \EvilStudio\ComposerParser\Model\RepositoryList
