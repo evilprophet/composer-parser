@@ -6,40 +6,18 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
 class Repository implements RepositoryInterface
 {
-    /**
-     * @var string
-     */
-    protected $projectName;
+    protected string $projectName;
 
-    /**
-     * @var string
-     */
-    protected $repositoryName;
+    protected string $repositoryName;
 
-    /**
-     * @var string
-     */
-    protected $remoteProjectName;
+    protected string $remoteProjectName;
 
-    /**
-     * @var string
-     */
-    protected $remote;
+    protected string $remote;
 
-    /**
-     * @var string
-     */
-    protected $branch;
+    protected string $branch;
 
-    /**
-     * @var string
-     */
-    protected $directory;
+    protected string $directory;
 
-    /**
-     * Repository constructor.
-     * @param array $repositoryConfig
-     */
     public function __construct(array $repositoryConfig)
     {
         $this->projectName = $repositoryConfig['name'];
@@ -52,49 +30,31 @@ class Repository implements RepositoryInterface
         $this->remoteProjectName = explode('/', $this->repositoryName)[1];
     }
 
-    /**
-     * @return string
-     */
     public function getProjectName(): string
     {
         return $this->projectName;
     }
 
-    /**
-     * @return string
-     */
     public function getRepositoryName(): string
     {
         return $this->repositoryName;
     }
 
-    /**
-     * @return string
-     */
     public function getRemoteProjectName(): string
     {
         return $this->remoteProjectName;
     }
 
-    /**
-     * @return string
-     */
     public function getRemote(): string
     {
         return $this->remote;
     }
 
-    /**
-     * @return string
-     */
     public function getBranch(): string
     {
         return $this->branch;
     }
 
-    /**
-     * @return string
-     */
     public function getDirectory(): string
     {
         return $this->directory;

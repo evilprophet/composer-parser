@@ -9,16 +9,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Cleanup extends Command
 {
-    /**
-     * @var Cleaner
-     */
-    protected $cleaner;
+    protected Cleaner $cleaner;
 
-    /**
-     * Cleanup constructor.
-     * @param Cleaner $cleaner
-     * @param string|null $name
-     */
     public function __construct(Cleaner $cleaner, string $name = null)
     {
         parent::__construct($name);
@@ -33,11 +25,6 @@ class Cleanup extends Command
             ->setDescription("Run this command to remove all downloaded repositories. It's required if you want to download newest version of repositories.");
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->cleaner->execute();

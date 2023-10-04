@@ -11,11 +11,6 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class Application extends \Symfony\Component\Console\Application
 {
-    /**
-     * @param string $name
-     * @param string $version
-     * @throws Exception
-     */
     public function __construct(string $name = 'Composer Parser', string $version = '2.0')
     {
         $containerBuilder = new ContainerBuilder();
@@ -26,12 +21,14 @@ class Application extends \Symfony\Component\Console\Application
         $loader->load('services.yaml');
 
         parent::__construct($name, $version);
+
         $this->addCommands([
             new Run(
                 $containerBuilder->get('parserManager.service'),
                 $containerBuilder->get('writerManager.service')
             )
         ]);
+
         $this->addCommands([
             new Cleanup(
                 $containerBuilder->get('cleaner.service')

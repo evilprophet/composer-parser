@@ -14,32 +14,14 @@ use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 
 class ComposerJson implements ParserInterface
 {
-    /**
-     * @var PackageConfigInterface
-     */
-    protected $packageConfig;
+    protected PackageConfigInterface $packageConfig;
 
-    /**
-     * @var RepositoryListInterface
-     */
-    protected $repositoryList;
+    protected RepositoryListInterface $repositoryList;
 
-    /**
-     * @var ProviderManager
-     */
-    protected $providerManager;
+    protected ProviderManager $providerManager;
 
-    /**
-     * @var array
-     */
-    protected $parsedData = [];
+    protected array $parsedData = [];
 
-    /**
-     * Parser constructor.
-     * @param PackageConfigInterface $packageConfig
-     * @param RepositoryListInterface $repositoryList
-     * @param ProviderManager $providerManager
-     */
     public function __construct(PackageConfigInterface $packageConfig, RepositoryListInterface $repositoryList, ProviderManager $providerManager)
     {
         $this->packageConfig = $packageConfig;
@@ -47,10 +29,6 @@ class ComposerJson implements ParserInterface
         $this->providerManager = $providerManager;
     }
 
-    /**
-     * @return ParsedDataInterface
-     * @throws ProviderTypeNotSupportedException
-     */
     public function execute(): ParsedDataInterface
     {
         $this->parsedData = [];
@@ -66,11 +44,6 @@ class ComposerJson implements ParserInterface
         return new ParsedData($this->parsedData, $projectNames);
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param ProviderInterface $provider
-     * @param array $projectNamesGrouped
-     */
     protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
     {
         $provider->load($repository);
@@ -79,11 +52,6 @@ class ComposerJson implements ParserInterface
         $this->parsePatchSet($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
     }
 
-    /**
-     * @param array $composerJsonContent
-     * @param array $projectNamesGrouped
-     * @param string $projectName
-     */
     protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
     {
         $requireGroup = $composerJsonContent['require'] ?? [];
@@ -100,11 +68,6 @@ class ComposerJson implements ParserInterface
         }
     }
 
-    /**
-     * @param array $group
-     * @param string $projectName
-     * @param string $groupType
-     */
     protected function parseGroup(array $group, string $projectName, string $groupType)
     {
         $packageGroups = $this->packageConfig->getPackageGroupsForParser($groupType);
@@ -124,9 +87,6 @@ class ComposerJson implements ParserInterface
 
     /**
      * Function parsing data from extra/patchset section in composer.json where patches applied by mageops/php-composer-plugin-patchset are configured
-     * @param array $composerJsonContent
-     * @param array $projectNamesGrouped
-     * @param string $projectName
      */
     protected function parsePatchSet(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
     {

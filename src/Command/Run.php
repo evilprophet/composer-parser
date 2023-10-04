@@ -2,8 +2,7 @@
 
 namespace EvilStudio\ComposerParser\Command;
 
-use EvilStudio\ComposerParser\Exception\ParserTypeNotSupportedException;
-use EvilStudio\ComposerParser\Exception\WriterTypeNotSupportedException;
+
 use EvilStudio\ComposerParser\Service\Parser\ParserManager;
 use EvilStudio\ComposerParser\Service\Writer\WriterManager;
 use Symfony\Component\Console\Command\Command;
@@ -12,22 +11,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Run extends Command
 {
-    /**
-     * @var ParserManager
-     */
-    protected $parserManager;
+    protected ParserManager $parserManager;
 
-    /**
-     * @var WriterManager
-     */
-    protected $writerManager;
+    protected WriterManager $writerManager;
 
-    /**
-     * Run constructor.
-     * @param ParserManager $parserManager
-     * @param WriterManager $writerManager
-     * @param string|null $name
-     */
     public function __construct(ParserManager $parserManager, WriterManager $writerManager, string $name = null)
     {
         parent::__construct($name);
@@ -43,13 +30,6 @@ class Run extends Command
             ->setDescription("Run this command to parser all repositories configured in 'config/parameters.yaml'.");
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     * @throws ParserTypeNotSupportedException
-     * @throws WriterTypeNotSupportedException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $parser = $this->parserManager->getParser();

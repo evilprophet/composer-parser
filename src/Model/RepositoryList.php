@@ -7,20 +7,10 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 
 class RepositoryList implements RepositoryListInterface
 {
-    /**
-     * @var RepositoryListInterface[]
-     */
-    protected $repositoryList = [];
+    protected array $repositoryList = [];
 
-    /**
-     * @var array
-     */
-    protected $projectNamesList = [];
+    protected array $projectNamesList = [];
 
-    /**
-     * RepositoryList constructor.
-     * @param array $repositoryList
-     */
     public function __construct(array $repositoryList)
     {
         foreach ($repositoryList as $repository) {
@@ -28,17 +18,11 @@ class RepositoryList implements RepositoryListInterface
         }
     }
 
-    /**
-     * @return RepositoryInterface[]
-     */
     public function getList(): array
     {
         return $this->repositoryList;
     }
 
-    /**
-     * @return array
-     */
     public function getProjectNames(): array
     {
         if (!empty($this->projectNamesList)) {
@@ -49,6 +33,7 @@ class RepositoryList implements RepositoryListInterface
         foreach ($this->getList() as $repository) {
             $this->projectNamesList[] = $repository->getProjectName();
         }
+
         sort($this->projectNamesList);
 
         return $this->projectNamesList;

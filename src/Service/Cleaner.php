@@ -7,15 +7,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class Cleaner
 {
-    /**
-     * @var RepositoryListInterface
-     */
-    protected $repositoryList;
+    protected RepositoryListInterface $repositoryList;
 
-    /**
-     * Cleaner constructor.
-     * @param RepositoryListInterface $repositoryList
-     */
     public function __construct(RepositoryListInterface $repositoryList)
     {
         $this->repositoryList = $repositoryList;

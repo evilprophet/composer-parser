@@ -9,14 +9,9 @@ use mikehaertl\shellcommand\Command;
 
 class ComposerFull extends ComposerJsonAndLock
 {
-    const COMPOSER_OUTDATED_CMD_COMMAND = 'cd %s; composer outdated --format=json';
-    const COMMENT_NEWEST_VERSION = "Latest version: %s\n";
+    protected const COMPOSER_OUTDATED_CMD_COMMAND = 'cd %s; composer outdated --format=json';
+    protected const COMMENT_NEWEST_VERSION = "Latest version: %s\n";
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param ProviderInterface $provider
-     * @param array $projectNamesGrouped
-     */
     protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
     {
         parent::executePerRepository($repository, $provider, $projectNamesGrouped);
@@ -24,10 +19,6 @@ class ComposerFull extends ComposerJsonAndLock
         $this->addLatestAvailableVersion($provider->getLocalRepositoryDirectory(), $repository->getProjectName());
     }
 
-    /**
-     * @param string $repositoryDirectoryPath
-     * @param string $projectName
-     */
     protected function addLatestAvailableVersion(string $repositoryDirectoryPath, string $projectName)
     {
         $command = new Command(sprintf(self::COMPOSER_OUTDATED_CMD_COMMAND, $repositoryDirectoryPath));

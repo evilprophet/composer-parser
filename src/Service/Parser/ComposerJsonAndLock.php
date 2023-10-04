@@ -8,13 +8,8 @@ use EvilStudio\ComposerParser\Api\ProviderInterface;
 
 class ComposerJsonAndLock extends ComposerJson
 {
-    const COMMENT_INSTALLED_VERSION = "Installed version: %s\n";
+    protected const COMMENT_INSTALLED_VERSION = "Installed version: %s\n";
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param ProviderInterface $provider
-     * @param array $projectNamesGrouped
-     */
     protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
     {
         parent::executePerRepository($repository, $provider, $projectNamesGrouped);
@@ -26,10 +21,6 @@ class ComposerJsonAndLock extends ComposerJson
         }
     }
 
-    /**
-     * @param array $composerLockContent
-     * @param string $projectName
-     */
     protected function parseComposerLockFile(array $composerLockContent, string $projectName): void
     {
         $skippedPackageGroups = array_merge(
@@ -59,10 +50,6 @@ class ComposerJsonAndLock extends ComposerJson
         }
     }
 
-    /**
-     * @param array $composerLockContent
-     * @param string $projectName
-     */
     protected function checkObservedPackages(array $composerLockContent, string $projectName): void
     {
         $packageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_OBSERVED);
@@ -86,12 +73,6 @@ class ComposerJsonAndLock extends ComposerJson
         }
     }
 
-    /**
-     * @param $packageGroupName
-     * @param $packageName
-     * @param $projectName
-     * @param $version
-     */
     protected function addInstalledVersion($packageGroupName, $packageName, $projectName, $version): void
     {
         switch ($this->packageConfig->installedVersionDisplayedIn()) {

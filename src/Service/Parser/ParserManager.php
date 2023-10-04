@@ -7,31 +7,16 @@ use EvilStudio\ComposerParser\Exception\ParserTypeNotSupportedException;
 
 class ParserManager
 {
-    /**
-     * @var string
-     */
-    protected $parserType;
+    protected string $parserType;
 
-    /**
-     * @var array
-     */
-    protected $parsers;
+    protected array $parsers;
 
-    /**
-     * ParserManager constructor.
-     * @param string $parserType
-     * @param array $parsers
-     */
     public function __construct(string $parserType, array $parsers)
     {
         $this->parserType = $parserType;
         $this->parsers = $parsers;
     }
 
-    /**
-     * @return ParserInterface
-     * @throws ParserTypeNotSupportedException
-     */
     public function getParser(): ParserInterface
     {
         if (!key_exists($this->parserType, $this->parsers)) {

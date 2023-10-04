@@ -12,15 +12,12 @@ use ZipArchive;
 
 class ApiArchive extends AbstractGitlab
 {
-    const GITLAB_API_DOWNLOAD_ARCHIVE_URL = '%s/api/v4/projects/%s/repository/archive.zip?ref=%s';
+    protected const GITLAB_API_DOWNLOAD_ARCHIVE_URL = '%s/api/v4/projects/%s/repository/archive.zip?ref=%s';
 
-    const AUTH_JSON_ENCRYPTED_PATH = '%s/auth.json.encrypted';
-    const AUTH_JSON_PATH = '%s/auth.json';
+    protected const AUTH_JSON_ENCRYPTED_PATH = '%s/auth.json.encrypted';
+    protected const AUTH_JSON_PATH = '%s/auth.json';
 
-    /**
-     * @var string
-     */
-    protected $ansibleVaultPassword;
+    protected string $ansibleVaultPassword;
 
     public function __construct(string $appDir, string $gitlabUrl, string $gitlabApiToken, string $ansibleVaultPassword)
     {
@@ -29,9 +26,6 @@ class ApiArchive extends AbstractGitlab
         $this->ansibleVaultPassword = $ansibleVaultPassword;
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     */
     public function load(RepositoryInterface $repository): void
     {
         $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
@@ -41,10 +35,6 @@ class ApiArchive extends AbstractGitlab
         $this->decryptAuthJson();
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @return string|null
-     */
     protected function downloadArchive(RepositoryInterface $repository): ?string
     {
         $fileUrl = sprintf(
@@ -68,10 +58,6 @@ class ApiArchive extends AbstractGitlab
         return $archivePath;
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param string $archivePath
-     */
     protected function unpackArchive(RepositoryInterface $repository, string $archivePath): void
     {
         $extractDirectory = dirname($repository->getDirectory());
@@ -102,16 +88,13 @@ class ApiArchive extends AbstractGitlab
 
         try {
             $authJsonContent = Decrypter::decryptString($authJsonEncryptedContent, $this->ansibleVaultPassword);
-        } catch (DecryptionException | AnsibleVaultException | Decrypter\Exception\InvalidPayloadException $e) {
+        } catch (DecryptionException|AnsibleVaultException|Decrypter\Exception\InvalidPayloadException $e) {
             return;
         }
 
         file_put_contents($authJsonPath, $authJsonContent);
     }
 
-    /**
-     * @return string
-     */
     public function getLocalRepositoryDirectory(): string
     {
         return $this->localRepositoryDirectory;

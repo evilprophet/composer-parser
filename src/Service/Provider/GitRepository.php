@@ -9,15 +9,9 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
 class GitRepository extends AbstractProvider
 {
-    /**
-     * @var Git
-     */
-    protected $git;
+    protected Git $git;
 
-    /**
-     * @var Repository
-     */
-    protected $gitRepository;
+    protected Repository $gitRepository;
 
     public function __construct(string $appDir)
     {
@@ -26,10 +20,6 @@ class GitRepository extends AbstractProvider
         $this->git = new Git();
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @throws GitException
-     */
     public function load(RepositoryInterface $repository): void
     {
         $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());

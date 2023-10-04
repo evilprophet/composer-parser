@@ -6,30 +6,14 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 
 class PackageConfig implements PackageConfigInterface
 {
-    /**
-     * @var bool
-     */
-    protected $includeInstalledVersion;
+    protected bool $includeInstalledVersion;
 
-    /**
-     * @var string
-     */
-    protected $installedVersionDisplayedIn;
+    protected string $installedVersionDisplayedIn;
 
-    /**
-     * @var array
-     */
-    protected $packageGroups;
+    protected array $packageGroups;
 
-    /**
-     * @var array
-     */
-    protected $observedPackages;
+    protected array $observedPackages;
 
-    /**
-     * PackageConfig constructor.
-     * @param array $packageConfigData
-     */
     public function __construct(array $packageConfigData)
     {
         $this->includeInstalledVersion = $packageConfigData['includeInstalledVersion'] ?? false;
@@ -38,26 +22,16 @@ class PackageConfig implements PackageConfigInterface
         $this->observedPackages = $packageConfigData['observedPackages'] ?? [];
     }
 
-    /**
-     * @return bool
-     */
     public function includeInstalledVersion(): bool
     {
         return $this->includeInstalledVersion;
     }
 
-    /**
-     * @return string
-     */
     public function installedVersionDisplayedIn(): string
     {
         return $this->installedVersionDisplayedIn;
     }
 
-    /**
-     * @param string|null $groupType
-     * @return array
-     */
     public function getPackageGroupsForParser(?string $groupType): array
     {
         $parserPackageGroup = $this->packageGroups;
@@ -74,9 +48,6 @@ class PackageConfig implements PackageConfigInterface
         });
     }
 
-    /**
-     * @return array
-     */
     public function getPackageGroupsForWriter(): array
     {
         $writerPackageGroup = $this->packageGroups;
@@ -87,9 +58,6 @@ class PackageConfig implements PackageConfigInterface
         return $writerPackageGroup;
     }
 
-    /**
-     * @return array
-     */
     public function getObservedPackages(): array
     {
         sort($this->observedPackages);

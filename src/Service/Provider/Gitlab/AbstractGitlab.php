@@ -6,22 +6,10 @@ use EvilStudio\ComposerParser\Service\Provider\AbstractProvider;
 
 abstract class AbstractGitlab extends AbstractProvider
 {
-    /**
-     * @var string
-     */
-    protected $gitlabUrl;
+    protected string $gitlabUrl;
 
-    /**
-     * @var string
-     */
-    protected $gitlabApiToken;
+    protected string $gitlabApiToken;
 
-    /**
-     * GitlabApi constructor.
-     * @param string $appDir
-     * @param string $gitlabUrl
-     * @param string $gitlabApiToken
-     */
     public function __construct(string $appDir, string $gitlabUrl, string $gitlabApiToken)
     {
         parent::__construct($appDir);

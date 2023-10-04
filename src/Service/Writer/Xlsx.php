@@ -6,48 +6,24 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
-use PhpOffice\PhpSpreadsheet\Exception as PhpSpreadsheetException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Writer\Exception as WriterException;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
 
 class Xlsx implements WriterInterface
 {
-    const FILE_EXTENSION = '.xlsx';
+    protected const FILE_EXTENSION = '.xlsx';
 
-    /**
-     * @var string
-     */
-    protected $fileName;
+    protected string $fileName;
 
-    /**
-     * @var string
-     */
-    protected $fileDirectory;
+    protected string $fileDirectory;
 
-    /**
-     * @var Spreadsheet
-     */
-    protected $spreadsheet;
+    protected Spreadsheet $spreadsheet;
 
-    /**
-     * @var PackageConfigInterface
-     */
-    protected $packageConfig;
+    protected PackageConfigInterface $packageConfig;
 
-    /**
-     * @var StylingConfigInterface
-     */
-    protected $stylingConfig;
+    protected StylingConfigInterface $stylingConfig;
 
-    /**
-     * Xlsx constructor.
-     * @param string $fileName
-     * @param string $fileDirectory
-     * @param PackageConfigInterface $packageConfig
-     * @param StylingConfigInterface $stylingConfig
-     */
     public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig, StylingConfigInterface $stylingConfig)
     {
         $this->fileName = $fileName;
@@ -56,10 +32,6 @@ class Xlsx implements WriterInterface
         $this->stylingConfig = $stylingConfig;
     }
 
-    /**
-     * @param ParsedDataInterface $parsedData
-     * @throws WriterException|PhpSpreadsheetException
-     */
     public function execute(ParsedDataInterface $parsedData): void
     {
         $this->prepareSpreadsheet();
@@ -70,9 +42,6 @@ class Xlsx implements WriterInterface
         $this->writeSpreadsheet();
     }
 
-    /**
-     * @throws PhpSpreadsheetException
-     */
     protected function prepareSpreadsheet(): void
     {
         $this->spreadsheet = new Spreadsheet();
@@ -81,9 +50,6 @@ class Xlsx implements WriterInterface
         $this->spreadsheet->getDefaultStyle()->getFont()->setSize(10);
     }
 
-    /**
-     * @throws WriterException
-     */
     protected function writeSpreadsheet(): void
     {
         $filePath = $this->getFilePath();
@@ -92,9 +58,6 @@ class Xlsx implements WriterInterface
         $xlsxWriter->save($filePath);
     }
 
-    /**
-     * @param array $projectNames
-     */
     protected function prepareHeader(array $projectNames): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
@@ -112,9 +75,6 @@ class Xlsx implements WriterInterface
         }
     }
 
-    /**
-     * @param array $parsedComposerJson
-     */
     protected function prepareData(array $parsedComposerJson): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
@@ -158,9 +118,6 @@ class Xlsx implements WriterInterface
         }
     }
 
-    /**
-     * @return string
-     */
     protected function getFileDirectory(): string
     {
         if (!file_exists($this->fileDirectory)) {
@@ -170,9 +127,6 @@ class Xlsx implements WriterInterface
         return $this->fileDirectory;
     }
 
-    /**
-     * @return string
-     */
     protected function getFilePath(): string
     {
         $fileName = str_replace("{date}", date('Y-m-d'), $this->fileName);
@@ -180,9 +134,6 @@ class Xlsx implements WriterInterface
         return $this->getFileDirectory() . DIRECTORY_SEPARATOR . $fileName . self::FILE_EXTENSION;
     }
 
-    /**
-     * @return array
-     */
     protected function getHeaderStyle(): array
     {
         return [
@@ -192,9 +143,6 @@ class Xlsx implements WriterInterface
         ];
     }
 
-    /**
-     * @return array
-     */
     protected function getGroupHeaderStyle(): array
     {
         return [
@@ -210,11 +158,6 @@ class Xlsx implements WriterInterface
         ];
     }
 
-    /**
-     * @param string $versionCell
-     * @param string $packageName
-     * @return array
-     */
     protected function getPackageVersionCellStyle(string $versionCell, string $packageName): array
     {
         $styling = [];

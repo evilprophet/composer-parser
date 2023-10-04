@@ -7,31 +7,16 @@ use EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException;
 
 class ProviderManager
 {
-    /**
-     * @var string
-     */
-    protected $providerType;
+    protected string $providerType;
 
-    /**
-     * @var array
-     */
-    protected $providers;
+    protected array $providers;
 
-    /**
-     * ProviderManager constructor.
-     * @param string $providerType
-     * @param array $providers
-     */
     public function __construct(string $providerType, array $providers)
     {
         $this->providerType = $providerType;
         $this->providers = $providers;
     }
 
-    /**
-     * @return ProviderInterface
-     * @throws ProviderTypeNotSupportedException
-     */
     public function getProvider(): ProviderInterface
     {
         if (!key_exists($this->providerType, $this->providers)) {

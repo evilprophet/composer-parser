@@ -7,13 +7,10 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
 class ApiFiles extends AbstractGitlab
 {
-    const GITLAB_API_DOWNLOAD_FILE_URL = '%s/api/v4/projects/%s/repository/files/%s/raw?ref=%s';
+    protected const GITLAB_API_DOWNLOAD_FILE_URL = '%s/api/v4/projects/%s/repository/files/%s/raw?ref=%s';
 
-    const FILE_LIST = ['composer.json', 'composer.lock'];
+    protected const FILE_LIST = ['composer.json', 'composer.lock'];
 
-    /**
-     * @param RepositoryInterface $repository
-     */
     public function load(RepositoryInterface $repository): void
     {
         $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
@@ -26,10 +23,6 @@ class ApiFiles extends AbstractGitlab
         }
     }
 
-    /**
-     * @param RepositoryInterface $repository
-     * @param $fileName
-     */
     protected function downloadFile(RepositoryInterface $repository, $fileName): void
     {
         $fileUrl = sprintf(
