@@ -54,10 +54,12 @@ class ComposerJson implements ParserInterface
 
     protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
     {
-        $requireGroup = $composerJsonContent['require'] ?? [];
-        $replaceGroup = $composerJsonContent['replace'] ?? [];
+        $requireGroup = $composerJsonContent[PackageConfigInterface::COMPOSER_TYPE_REQUIRE] ?? [];
+        $requireDevGroup = $composerJsonContent[PackageConfigInterface::COMPOSER_TYPE_REQUIRE_DEV] ?? [];
+        $replaceGroup = $composerJsonContent[PackageConfigInterface::COMPOSER_TYPE_REPLACE] ?? [];
 
         $this->parseGroup($requireGroup, $projectName, PackageConfigInterface::COMPOSER_TYPE_REQUIRE);
+        $this->parseGroup($requireDevGroup, $projectName, PackageConfigInterface::COMPOSER_TYPE_REQUIRE_DEV);
         $this->parseGroup($replaceGroup, $projectName, PackageConfigInterface::COMPOSER_TYPE_REPLACE);
 
         foreach ($this->parsedData as &$group) {

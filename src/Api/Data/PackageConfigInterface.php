@@ -5,6 +5,7 @@ namespace EvilStudio\ComposerParser\Api\Data;
 interface PackageConfigInterface
 {
     public const COMPOSER_TYPE_REQUIRE = 'require';
+    public const COMPOSER_TYPE_REQUIRE_DEV = 'require-dev';
     public const COMPOSER_TYPE_REPLACE = 'replace';
     public const COMPOSER_TYPE_PATCHSET = 'patchset';
     public const COMPOSER_TYPE_OBSERVED = 'observed';
