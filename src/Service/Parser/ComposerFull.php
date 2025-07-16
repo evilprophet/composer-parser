@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;

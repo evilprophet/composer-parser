@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser;
 
 use EvilStudio\ComposerParser\Command\Run;
@@ -35,5 +37,4 @@ class Application extends \Symfony\Component\Console\Application
             )
         ]);
     }
-
 }

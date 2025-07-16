@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Model;
 
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
@@ -7,15 +9,10 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 class Repository implements RepositoryInterface
 {
     protected string $projectName;
-
     protected string $repositoryName;
-
     protected string $remoteProjectName;
-
     protected string $remote;
-
     protected string $branch;
-
     protected string $directory;
 
     public function __construct(array $repositoryConfig)

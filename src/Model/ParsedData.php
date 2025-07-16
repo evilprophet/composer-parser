@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Model;
 
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
@@ -7,7 +9,6 @@ use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 class ParsedData implements ParsedDataInterface
 {
     protected array $projectData;
-
     protected array $projectNames;
 
     public function __construct(array $projectData, array $projectNames)

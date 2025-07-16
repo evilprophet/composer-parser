@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Command;
 
 use EvilStudio\ComposerParser\Service\Cleaner;
@@ -11,7 +13,7 @@ class Cleanup extends Command
 {
     protected Cleaner $cleaner;
 
-    public function __construct(Cleaner $cleaner, string $name = null)
+    public function __construct(Cleaner $cleaner, ?string $name = null)
     {
         parent::__construct($name);
 
@@ -29,6 +31,6 @@ class Cleanup extends Command
     {
         $this->cleaner->execute();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

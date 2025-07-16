@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
@@ -15,9 +17,7 @@ use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 class ComposerJson implements ParserInterface
 {
     protected PackageConfigInterface $packageConfig;
-
     protected RepositoryListInterface $repositoryList;
-
     protected ProviderManager $providerManager;
 
     protected array $parsedData = [];

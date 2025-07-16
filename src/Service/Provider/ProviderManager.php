@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Provider;
 
 use EvilStudio\ComposerParser\Api\ProviderInterface;

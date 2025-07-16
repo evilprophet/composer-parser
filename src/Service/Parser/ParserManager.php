@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\ParserInterface;
@@ -8,7 +10,6 @@ use EvilStudio\ComposerParser\Exception\ParserTypeNotSupportedException;
 class ParserManager
 {
     protected string $parserType;
-
     protected array $parsers;
 
     public function __construct(string $parserType, array $parsers)

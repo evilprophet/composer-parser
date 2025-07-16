@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\WriterInterface;
@@ -8,7 +10,6 @@ use EvilStudio\ComposerParser\Exception\WriterTypeNotSupportedException;
 class WriterManager
 {
     protected string $writerType;
-
     protected array $writers;
 
     public function __construct(string $writerType, array $writers)

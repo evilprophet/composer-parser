@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Model;
 
 use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
@@ -7,7 +9,6 @@ use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 class StylingConfig implements StylingConfigInterface
 {
     protected string $groupHeaderBackgroundColor;
-
     protected array $cellStyleMapping;
 
     public function __construct(array $stylingConfigData)

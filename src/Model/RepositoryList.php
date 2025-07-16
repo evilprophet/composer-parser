@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Model;
 
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
@@ -8,7 +10,6 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 class RepositoryList implements RepositoryListInterface
 {
     protected array $repositoryList = [];
-
     protected array $projectNamesList = [];
 
     public function __construct(array $repositoryList)

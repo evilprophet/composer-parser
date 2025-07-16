@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Model;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
@@ -7,11 +9,8 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 class PackageConfig implements PackageConfigInterface
 {
     protected bool $includeInstalledVersion;
-
     protected string $installedVersionDisplayedIn;
-
     protected array $packageGroups;
-
     protected array $observedPackages;
 
     public function __construct(array $packageConfigData)

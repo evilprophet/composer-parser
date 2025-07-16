@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Provider;
 
 use CzProject\GitPhp\Git;
@@ -10,7 +12,6 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 class GitRepository extends AbstractProvider
 {
     protected Git $git;
-
     protected Repository $gitRepository;
 
     public function __construct(string $appDir)

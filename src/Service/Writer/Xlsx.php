@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
@@ -15,13 +17,10 @@ class Xlsx implements WriterInterface
     protected const FILE_EXTENSION = '.xlsx';
 
     protected string $fileName;
-
     protected string $fileDirectory;
 
     protected Spreadsheet $spreadsheet;
-
     protected PackageConfigInterface $packageConfig;
-
     protected StylingConfigInterface $stylingConfig;
 
     public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig, StylingConfigInterface $stylingConfig)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace EvilStudio\ComposerParser\Service\Provider;
 
 use EvilStudio\ComposerParser\Api\ProviderInterface;
@@ -7,7 +9,6 @@ use EvilStudio\ComposerParser\Api\ProviderInterface;
 abstract class AbstractProvider implements ProviderInterface
 {
     protected string $appDir;
-
     protected string $localRepositoryDirectory;
 
     public function __construct(string $appDir)

@@ -1,7 +1,8 @@
 <?php
 
-namespace EvilStudio\ComposerParser\Command;
+declare(strict_types=1);
 
+namespace EvilStudio\ComposerParser\Command;
 
 use EvilStudio\ComposerParser\Service\Parser\ParserManager;
 use EvilStudio\ComposerParser\Service\Writer\WriterManager;
@@ -12,10 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Run extends Command
 {
     protected ParserManager $parserManager;
-
     protected WriterManager $writerManager;
 
-    public function __construct(ParserManager $parserManager, WriterManager $writerManager, string $name = null)
+    public function __construct(ParserManager $parserManager, WriterManager $writerManager, ?string $name = null)
     {
         parent::__construct($name);
 
@@ -38,6 +38,6 @@ class Run extends Command
         $writer = $this->writerManager->getWriter();
         $writer->execute($parsedData);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
