@@ -45,10 +45,6 @@ All fields are documented in `config/parameters.yaml.template`. Copy it and fill
 | `app:run`     | Fetches data from repositories and generates the XLSX report. |
 | `app:cleanup` | Removes downloaded repositories from the working directory.   |
 
-## 🗺️ Roadmap
-
-- 🔮 [Roadmap](./docs/roadmap.md)
-
 ## 📄 Output
 
 - The XLSX file is written to `writer.config.local.fileDirectory`.
@@ -72,6 +68,11 @@ src/          # Application source code
 var/          # Working data (repositories, results)
 vendor/       # Composer dependencies
 ```
+
+## 📚 Documentation
+
+- 🗺️ [Roadmap](./docs/roadmap.md)
+- 🧭 [Refactor Plan](./docs/refactor-plan.md)
 
 ## 📝 Notes
 
