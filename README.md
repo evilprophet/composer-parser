@@ -47,7 +47,7 @@ All fields are documented in `config/parameters.yaml.template`. Copy it and fill
 
 ## 🗺️ Roadmap
 
-See `docs/roadmap.md`.
+- 🔮 [Roadmap](./docs/roadmap.md)
 
 ## 📄 Output
 
