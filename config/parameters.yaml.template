@@ -1,7 +1,7 @@
 parameters:
   app.config:
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
-    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (it can be used only with gitlabApiArchive)
+    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (composerFull works only with gitlabApiArchive)
     writerType: xlsx #Supported: xlsx
     gitlab:
       url: https://gitlab.com
@@ -9,8 +9,9 @@ parameters:
     ansibleVaultPassword: #Used by provider gitlabApiArchive to decrypt auth.json.encrypted if present
 
   package.config:
+    #groupType supported values: require, require-dev, replace, observed, patchset
     #Options not available with parser composerJson
-    includeInstalledVersion: false
+    includeInstalledVersion: false #Requires composer.lock to add installed versions
     installedVersionDisplayedIn: comment #Supported: comment, value
 
     packageGroups:
@@ -28,6 +29,7 @@ parameters:
       fileName: "projects-{date}" #Without file extension
       fileDirectory: var/results
     styling:
+      groupHeaderBackgroundColor: F2F2F2 #RGB (no #)
       cellStyleMapping:
         - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000}
         - { packageNameRegex: /^package_name1/, versionRegex: /((?!2\.4\.3).)*/, color: FF0000}

@@ -19,11 +19,11 @@ class ApiArchive extends AbstractGitlab
 
     protected string $ansibleVaultPassword;
 
-    public function __construct(string $appDir, string $gitlabUrl, string $gitlabApiToken, string $ansibleVaultPassword)
+    public function __construct(string $appDir, string $gitlabUrl, string $gitlabApiToken, ?string $ansibleVaultPassword = null)
     {
         parent::__construct($appDir, $gitlabUrl, $gitlabApiToken);
 
-        $this->ansibleVaultPassword = $ansibleVaultPassword;
+        $this->ansibleVaultPassword = $ansibleVaultPassword ?? '';
     }
 
     public function load(RepositoryInterface $repository): void
