@@ -23,16 +23,29 @@ Composer Parser is a CLI tool for comparing dependencies across multiple reposit
 
 ## 🛠️ Installation
 
-1. Create the project via Composer:
+1. Clone the repository (recommended for easy updates):
    ```bash
-   composer create-project evilstudio/composer-parser
+   git clone https://github.com/evilstudio/composer-parser.git
+   cd composer-parser
+   composer install
    ```
-2. Copy the configuration template:
+2. Install dependencies:
+   ```bash
+   composer install
+   ```
+3. Copy the configuration template:
    ```bash
    cp config/parameters.yaml.template config/parameters.yaml
    ```
-3. Update values in `config/parameters.yaml`.
-4. Run the CLI commands (see the Commands section).
+4. Edit `config/parameters.yaml` to configure the application.
+5. Run the CLI commands (see the Commands section).
+
+## 🔄 Updating
+
+```bash
+git pull
+composer install
+```
 
 ## ⚙️ Configuration (config/parameters.yaml)
 
