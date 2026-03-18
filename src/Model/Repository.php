@@ -22,7 +22,9 @@ class Repository implements RepositoryInterface
         $this->branch = $repositoryConfig['branch'];
         $this->directory = $repositoryConfig['directory'];
 
-        preg_match('/:(.*\/.*)\.git/', $this->remote, $repositoryName);
+        if (!preg_match('/:(.*\/.*)\.git/', $this->remote, $repositoryName) || empty($repositoryName[1])) {
+            throw new \InvalidArgumentException('Unsupported git remote format: ' . $this->remote);
+        }
         $this->repositoryName = $repositoryName[1];
         $this->remoteProjectName = explode('/', $this->repositoryName)[1];
     }

@@ -63,12 +63,12 @@ class Xlsx implements WriterInterface
 
         $currentDate = date('Y-m-d H:i');
         $sheet->getColumnDimensionByColumn(1)->setAutoSize(true);
-        $sheet->setCellValueByColumnAndRow(1, 1, sprintf('Last update: %s', $currentDate));
+        $sheet->setCellValue([1, 1], sprintf('Last update: %s', $currentDate));
 
         $column = 2;
         foreach ($projectNames as $projectName) {
-            $sheet->setCellValueByColumnAndRow($column, 1, $projectName);
-            $sheet->getStyleByColumnAndRow($column, 1)->applyFromArray($this->getHeaderStyle());
+            $sheet->setCellValue([$column, 1], $projectName);
+            $sheet->getStyle([$column, 1])->applyFromArray($this->getHeaderStyle());
             $sheet->getColumnDimensionByColumn($column)->setWidth(10);
             $column++;
         }
@@ -88,24 +88,24 @@ class Xlsx implements WriterInterface
 
             $currentGroup = $parsedComposerJson[$packageGroup['name']];
 
-            $sheet->setCellValueByColumnAndRow($column, $row, $packageGroup['name']);
-            $sheet->getStyleByColumnAndRow(1, $row, 26, $row)->applyFromArray($this->getGroupHeaderStyle());
+            $sheet->setCellValue([$column, $row], $packageGroup['name']);
+            $sheet->getStyle([1, $row, 26, $row])->applyFromArray($this->getGroupHeaderStyle());
             $row++;
 
             foreach ($currentGroup as $packageName => $packageRow) {
-                $sheet->setCellValueByColumnAndRow($column, $row, $packageName);
+                $sheet->setCellValue([$column, $row], $packageName);
                 $column++;
 
                 foreach ($packageRow as $projectName => $versionCell) {
-                    $sheet->setCellValueByColumnAndRow($column, $row, $versionCell['value']);
+                    $sheet->setCellValue([$column, $row], $versionCell['value']);
 
                     $style = $this->getPackageVersionCellStyle($versionCell['value'], $packageName);
                     if (!empty($style)) {
-                        $sheet->getStyleByColumnAndRow($column, $row)->applyFromArray($style);
+                        $sheet->getStyle([$column, $row])->applyFromArray($style);
                     }
 
                     if (!empty($versionCell['comment'])) {
-                        $sheet->getCommentByColumnAndRow($column, $row)->getText()->createTextRun($versionCell['comment']);
+                        $sheet->getComment([$column, $row])->getText()->createTextRun($versionCell['comment']);
                     }
 
                     $column++;

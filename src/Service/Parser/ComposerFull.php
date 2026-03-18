@@ -23,13 +23,16 @@ class ComposerFull extends ComposerJsonAndLock
 
     protected function addLatestAvailableVersion(string $repositoryDirectoryPath, string $projectName)
     {
-        $command = new Command(sprintf(self::COMPOSER_OUTDATED_CMD_COMMAND, $repositoryDirectoryPath));
+        $command = new Command(sprintf(self::COMPOSER_OUTDATED_CMD_COMMAND, escapeshellarg($repositoryDirectoryPath)));
         $command->execute();
         if (!$command->getExecuted()) {
             return;
         }
 
         $outdatedPackages = json_decode($command->getOutput(), true);
+        if (!is_array($outdatedPackages) || !isset($outdatedPackages['installed']) || !is_array($outdatedPackages['installed'])) {
+            return;
+        }
         $outdatedPackages = $outdatedPackages['installed'];
 
         $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
@@ -39,8 +42,8 @@ class ComposerFull extends ComposerJsonAndLock
             }
 
             foreach ($packageGroup as $packageName => $packageRow) {
-                $outdatedPackageIndex = array_search($packageName, array_column($outdatedPackages, 'name'));
-                if (!$outdatedPackageIndex) {
+                $outdatedPackageIndex = array_search($packageName, array_column($outdatedPackages, 'name'), true);
+                if ($outdatedPackageIndex === false) {
                     continue;
                 }
 

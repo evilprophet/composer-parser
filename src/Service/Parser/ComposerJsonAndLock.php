@@ -37,8 +37,8 @@ class ComposerJsonAndLock extends ComposerJson
             }
 
             foreach ($packageGroup as $packageName => $packageRow) {
-                $packageInstalledIndex = array_search($packageName, array_column($packagesInstalled, 'name'));
-                if (!$packageInstalledIndex) {
+                $packageInstalledIndex = array_search($packageName, array_column($packagesInstalled, 'name'), true);
+                if ($packageInstalledIndex === false) {
                     continue;
                 }
 
@@ -63,8 +63,8 @@ class ComposerJsonAndLock extends ComposerJson
             $matchedPackagesNames = preg_grep($packageGroup['regex'], $observedPackages);
 
             foreach ($matchedPackagesNames as $matchedPackageName) {
-                $packageInstalledIndex = array_search($matchedPackageName, array_column($packagesInstalled, 'name'));
-                if (!$packageInstalledIndex) {
+                $packageInstalledIndex = array_search($matchedPackageName, array_column($packagesInstalled, 'name'), true);
+                if ($packageInstalledIndex === false) {
                     continue;
                 }
 

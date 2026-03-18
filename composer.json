@@ -14,17 +14,17 @@
     "php": ">=8.3",
     "ext-json": "*",
     "ext-zip": "*",
-    "czproject/git-php": "^4.0",
+    "czproject/git-php": "^4.6",
     "daniel-ness/ansible-vault": "^0.0.3",
-    "mikehaertl/php-shellcommand": "^1.6",
-    "php-curl-class/php-curl-class": "^9.5",
-    "phpoffice/phpspreadsheet": "^1.19",
-    "symfony/config": "^6.3",
-    "symfony/console": "^6.3",
-    "symfony/dependency-injection": "^6.3",
-    "symfony/expression-language": "^6.3",
-    "symfony/filesystem": "^6.3",
-    "symfony/yaml": "^6.3"
+    "mikehaertl/php-shellcommand": "^1.7",
+    "php-curl-class/php-curl-class": "^12.0.4",
+    "phpoffice/phpspreadsheet": "^5.4.0",
+    "symfony/config": "^7.4",
+    "symfony/console": "^7.4",
+    "symfony/dependency-injection": "^7.4",
+    "symfony/expression-language": "^7.4",
+    "symfony/filesystem": "^7.4",
+    "symfony/yaml": "^7.4"
   },
   "autoload": {
     "psr-4": {

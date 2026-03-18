@@ -31,6 +31,9 @@ class ApiArchive extends AbstractGitlab
         $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
 
         $archivePath = $this->downloadArchive($repository);
+        if ($archivePath === null) {
+            return;
+        }
         $this->unpackArchive($repository, $archivePath);
         $this->decryptAuthJson();
     }
@@ -60,6 +63,10 @@ class ApiArchive extends AbstractGitlab
 
     protected function unpackArchive(RepositoryInterface $repository, string $archivePath): void
     {
+        if (!is_file($archivePath)) {
+            return;
+        }
+
         $extractDirectory = dirname($repository->getDirectory());
 
         $zip = new ZipArchive();
@@ -69,7 +76,13 @@ class ApiArchive extends AbstractGitlab
         $zip->extractTo($extractDirectory);
         $zip->close();
 
-        $extracted = glob(sprintf('%s/%s*', $extractDirectory, $repository->getRemoteProjectName()))[0];
+        $extractedMatches = glob(sprintf('%s/%s*', $extractDirectory, $repository->getRemoteProjectName()));
+        if (empty($extractedMatches)) {
+            $filesystem = new Filesystem();
+            $filesystem->remove($archivePath);
+            return;
+        }
+        $extracted = $extractedMatches[0];
 
         $filesystem = new Filesystem();
         $filesystem->rename($extracted, $this->localRepositoryDirectory);
@@ -81,7 +94,7 @@ class ApiArchive extends AbstractGitlab
         $authJsonEncryptedPath = sprintf(self::AUTH_JSON_ENCRYPTED_PATH, $this->localRepositoryDirectory);
         $authJsonPath = sprintf(self::AUTH_JSON_PATH, $this->localRepositoryDirectory);
 
-        $authJsonEncryptedContent = @file_get_contents($authJsonEncryptedPath);
+        $authJsonEncryptedContent = file_get_contents($authJsonEncryptedPath);
         if (empty($authJsonEncryptedContent)) {
             return;
         }
