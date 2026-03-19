@@ -36,7 +36,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [
@@ -83,7 +83,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [
@@ -121,7 +121,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [
@@ -159,7 +159,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [
@@ -194,7 +194,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [
@@ -238,7 +238,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
-                    'sheetName' => 'Extensions in projects',
+                    'sheetName' => 'Packages in projects',
                 ],
             ],
             [

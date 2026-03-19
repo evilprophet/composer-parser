@@ -36,7 +36,7 @@ class GoogleSheetsTest extends TestCase
 
         $fakeClient = new FakeGoogleSheetsClient();
         $writer = new GoogleSheets(
-            'Extensions in projects',
+            'Packages in projects',
             'spreadsheet-1',
             '/tmp/key.json',
             $packageConfig,
@@ -67,7 +67,7 @@ class GoogleSheetsTest extends TestCase
         $call = $fakeClient->calls[0];
 
         self::assertSame('spreadsheet-1', $call['spreadsheetId']);
-        self::assertSame('Extensions in projects', $call['sheetName']);
+        self::assertSame('Packages in projects', $call['sheetName']);
         self::assertStringStartsWith('Last update: ', $call['values'][0][0]);
         self::assertSame('project-a', $call['values'][0][1]);
         self::assertSame('Group A', $call['values'][1][0]);

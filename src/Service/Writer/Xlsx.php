@@ -153,7 +153,7 @@ class Xlsx implements WriterInterface
     {
         $normalizedTitle = trim($title);
         if ($normalizedTitle === '') {
-            $normalizedTitle = 'Extensions in projects';
+            $normalizedTitle = 'Packages in projects';
         }
 
         return substr($normalizedTitle, 0, 31);
