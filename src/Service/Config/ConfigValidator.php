@@ -10,7 +10,7 @@ class ConfigValidator
 {
     protected const array ALLOWED_PROVIDER_TYPES = ['gitRepository', 'gitlabApiFiles', 'gitlabApiArchive'];
     protected const array ALLOWED_PARSER_TYPES = ['composerJson', 'composerJsonAndLock', 'composerFull'];
-    protected const array ALLOWED_WRITER_TYPES = ['xlsx', 'json', 'html'];
+    protected const array ALLOWED_WRITER_TYPES = ['xlsx', 'json', 'html', 'googleSheets'];
     protected const array ALLOWED_INSTALLED_VERSION_DISPLAY = ['value', 'comment'];
 
     public function validate(array $appConfig, array $packageConfig, array $writerConfig, array $repositoryConfig): void
@@ -63,9 +63,27 @@ class ConfigValidator
             throw new InvalidArgumentException('Invalid config: writer.config.local must be an array.');
         }
 
-        foreach (['fileName', 'fileDirectory'] as $requiredField) {
+        foreach (['fileName', 'fileDirectory', 'sheetName'] as $requiredField) {
             if (!isset($writerConfig['local'][$requiredField]) || !is_string($writerConfig['local'][$requiredField]) || $writerConfig['local'][$requiredField] === '') {
                 throw new InvalidArgumentException(sprintf('Invalid config: writer.config.local.%s is required and must be a non-empty string.', $requiredField));
+            }
+        }
+
+        if (isset($writerConfig['googleSheets']) && !is_array($writerConfig['googleSheets'])) {
+            throw new InvalidArgumentException('Invalid config: writer.config.googleSheets must be an array.');
+        }
+    }
+
+    public function validateGoogleSheetsWriterConfig(array $writerConfig): void
+    {
+        $googleSheetsConfig = $writerConfig['googleSheets'] ?? [];
+        if (!is_array($googleSheetsConfig)) {
+            throw new InvalidArgumentException('Invalid config: writer.config.googleSheets must be an array.');
+        }
+
+        foreach (['spreadsheetId', 'serviceAccountJsonPath'] as $requiredField) {
+            if (!isset($googleSheetsConfig[$requiredField]) || !is_string($googleSheetsConfig[$requiredField]) || trim($googleSheetsConfig[$requiredField]) === '') {
+                throw new InvalidArgumentException(sprintf('Invalid config: writer.config.googleSheets.%s is required for writerType=googleSheets.', $requiredField));
             }
         }
     }

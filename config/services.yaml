@@ -18,6 +18,7 @@ services:
       - '../src/Service/Writer/Xlsx.php'
       - '../src/Service/Writer/Json.php'
       - '../src/Service/Writer/Html.php'
+      - '../src/Service/Writer/GoogleSheets.php'
 
   EvilStudio\ComposerParser\Model\PackageConfig:
     arguments:
@@ -39,6 +40,9 @@ services:
 
   EvilStudio\ComposerParser\Api\Data\RepositoryListInterface:
     alias: EvilStudio\ComposerParser\Model\RepositoryList
+
+  EvilStudio\ComposerParser\Api\GoogleSheetsClientInterface:
+    alias: EvilStudio\ComposerParser\Service\Writer\GoogleSheetsClient
 
   EvilStudio\ComposerParser\Service\Provider\GitRepository:
     arguments:
@@ -103,6 +107,7 @@ services:
     arguments:
       $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
       $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
+      $sheetName: "@=container.getParameter('writer.config')['local']['sheetName']"
 
   EvilStudio\ComposerParser\Service\Writer\Json:
     arguments:
@@ -114,6 +119,12 @@ services:
       $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
       $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
 
+  EvilStudio\ComposerParser\Service\Writer\GoogleSheets:
+    arguments:
+      $sheetName: "@=container.getParameter('writer.config')['local']['sheetName']"
+      $spreadsheetId: "@=container.getParameter('writer.config')['googleSheets']['spreadsheetId']"
+      $serviceAccountJsonPath: "@=container.getParameter('writer.config')['googleSheets']['serviceAccountJsonPath']"
+
   EvilStudio\ComposerParser\Service\Writer\WriterManager:
     arguments:
       $writerType: "@=container.getParameter('app.config')['writerType']"
@@ -121,3 +132,4 @@ services:
         xlsx: '@EvilStudio\ComposerParser\Service\Writer\Xlsx'
         json: '@EvilStudio\ComposerParser\Service\Writer\Json'
         html: '@EvilStudio\ComposerParser\Service\Writer\Html'
+        googleSheets: '@EvilStudio\ComposerParser\Service\Writer\GoogleSheets'

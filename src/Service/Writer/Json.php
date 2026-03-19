@@ -8,10 +8,14 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
-use Symfony\Component\Filesystem\Filesystem;
+use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
+use EvilStudio\ComposerParser\Service\Writer\Support\OrdersGroupsByConfig;
 
 class Json implements WriterInterface
 {
+    use HandlesLocalOutputPath;
+    use OrdersGroupsByConfig;
+
     protected const string FILE_EXTENSION = '.json';
 
     public function __construct(
@@ -41,35 +45,5 @@ class Json implements WriterInterface
         }
 
         file_put_contents($this->getFilePath(), $encodedPayload . PHP_EOL);
-    }
-
-    protected function getFileDirectory(): string
-    {
-        $filesystem = new Filesystem();
-        $filesystem->mkdir($this->fileDirectory, 0777);
-
-        return $this->fileDirectory;
-    }
-
-    protected function getFilePath(): string
-    {
-        $fileName = str_replace('{date}', date('Y-m-d'), $this->fileName);
-
-        return $this->getFileDirectory() . DIRECTORY_SEPARATOR . $fileName . self::FILE_EXTENSION;
-    }
-
-    protected function getOrderedGroups(array $groups): array
-    {
-        $orderedGroups = [];
-        foreach ($this->packageConfig->getPackageGroupsForWriter() as $packageGroup) {
-            $groupName = $packageGroup['name'];
-            if (!array_key_exists($groupName, $groups)) {
-                continue;
-            }
-
-            $orderedGroups[$groupName] = $groups[$groupName];
-        }
-
-        return $orderedGroups;
     }
 }

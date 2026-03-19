@@ -24,6 +24,7 @@ It collects `composer.json` (optionally `composer.lock`), groups packages by con
     - `xlsx`
     - `json`
     - `html`
+    - `googleSheets`
 
 - `🧩 Configurable grouping and styling`
     - Regex-based package groups
@@ -35,7 +36,6 @@ It collects `composer.json` (optionally `composer.lock`), groups packages by con
 .
 ├── bin/             # CLI entrypoint
 ├── config/          # Parameters and service configuration
-├── docs/            # Roadmap and refactor plan
 ├── src/             # Application source code
 │   ├── Api/             # Contracts
 │   ├── Command/         # CLI commands
@@ -66,8 +66,9 @@ Set at least:
 
 - `app.config.providerType`
 - `app.config.parserType`
-- `app.config.writerType` (`xlsx`, `json`, `html`)
+- `app.config.writerType` (`xlsx`, `json`, `html`, `googleSheets`)
 - `repository.config.repositoryList`
+- `writer.config.local.sheetName` (required)
 
 ### 3. Run parser
 
@@ -88,6 +89,29 @@ bin/console app:cleanup
 | `app:run`     | Fetches data from configured repositories and writes report |
 | `app:cleanup` | Removes downloaded repositories                             |
 
+## ⚙️ Writer Configuration
+
+Common local writer fields:
+- `writer.config.local.fileName`
+- `writer.config.local.fileDirectory`
+- `writer.config.local.sheetName` (required, used by `xlsx` and `googleSheets`)
+
+Google Sheets writer (`writerType: googleSheets`) requires:
+- `writer.config.googleSheets.spreadsheetId`
+- `writer.config.googleSheets.serviceAccountJsonPath`
+
+## 🌐 Google Sheets Setup
+
+1. Create/open a Google Cloud project.
+2. Enable `Google Sheets API` in that project.
+3. Create a Service Account and generate a JSON key.
+4. Share target spreadsheet with the Service Account email as `Editor`.
+5. Set in config:
+  - `app.config.writerType: googleSheets`
+  - `writer.config.local.sheetName`
+  - `writer.config.googleSheets.spreadsheetId`
+  - `writer.config.googleSheets.serviceAccountJsonPath`
+
 ## 🧭 Notes
 
 - Output file path is built from `writer.config.local.fileDirectory` + `fileName`.
@@ -95,6 +119,7 @@ bin/console app:cleanup
 - Errors are logged to `var/log/error.log`.
 - `composerFull` requires `composer` available in PATH.
 - `gitRepository` provider requires local `git`.
+- `xlsx` output requires PHP extensions `ext-zip` and `ext-gd`.
 
 ## 🧪 Testing
 

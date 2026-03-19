@@ -2,7 +2,7 @@ parameters:
   app.config:
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
     parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (composerFull works only with gitlabApiArchive)
-    writerType: xlsx #Supported: xlsx, json, html
+    writerType: xlsx #Supported: xlsx, json, html, googleSheets
     gitlab:
       url: https://gitlab.com
       apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
@@ -28,6 +28,10 @@ parameters:
     local:
       fileName: "projects-{date}" #Without file extension, used by writers: xlsx/json/html
       fileDirectory: var/results #Output directory for writers: xlsx/json/html
+      sheetName: "Extensions in projects" #Used by writers: xlsx/googleSheets
+    googleSheets:
+      spreadsheetId: #Required when writerType=googleSheets
+      serviceAccountJsonPath: #Required when writerType=googleSheets, path to service account JSON key file
     styling:
       groupHeaderBackgroundColor: F2F2F2 #RGB (no #)
       cellStyleMapping:

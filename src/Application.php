@@ -32,6 +32,9 @@ class Application extends \Symfony\Component\Console\Application
             $containerBuilder->getParameter('writer.config'),
             $containerBuilder->getParameter('repository.config')
         );
+        if ($containerBuilder->getParameter('app.config')['writerType'] === 'googleSheets') {
+            $configValidator->validateGoogleSheetsWriterConfig($containerBuilder->getParameter('writer.config'));
+        }
 
         parent::__construct($name, $version);
 

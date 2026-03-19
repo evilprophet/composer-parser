@@ -10,13 +10,17 @@ use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Model\Report;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
+use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
+use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesVersionCellStyle;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
-use Symfony\Component\Filesystem\Filesystem;
 
 class Xlsx implements WriterInterface
 {
+    use HandlesLocalOutputPath;
+    use ResolvesVersionCellStyle;
+
     protected const string FILE_EXTENSION = '.xlsx';
 
     protected Spreadsheet $spreadsheet;
@@ -24,6 +28,7 @@ class Xlsx implements WriterInterface
     public function __construct(
         protected string $fileName,
         protected string $fileDirectory,
+        protected string $sheetName,
         protected PackageConfigInterface $packageConfig,
         protected StylingConfigInterface $stylingConfig,
         protected ReportFactory $reportFactory
@@ -44,6 +49,7 @@ class Xlsx implements WriterInterface
     protected function prepareSpreadsheet(): void
     {
         $this->spreadsheet = new Spreadsheet();
+        $this->spreadsheet->getActiveSheet()->setTitle($this->normalizeSheetTitle($this->sheetName));
 
         $this->spreadsheet->getDefaultStyle()->getFont()->setName('Arial');
         $this->spreadsheet->getDefaultStyle()->getFont()->setSize(10);
@@ -119,21 +125,6 @@ class Xlsx implements WriterInterface
         }
     }
 
-    protected function getFileDirectory(): string
-    {
-        $filesystem = new Filesystem();
-        $filesystem->mkdir($this->fileDirectory, 0777);
-
-        return $this->fileDirectory;
-    }
-
-    protected function getFilePath(): string
-    {
-        $fileName = str_replace("{date}", date('Y-m-d'), $this->fileName);
-
-        return $this->getFileDirectory() . DIRECTORY_SEPARATOR . $fileName . self::FILE_EXTENSION;
-    }
-
     protected function getHeaderStyle(): array
     {
         return [
@@ -158,30 +149,13 @@ class Xlsx implements WriterInterface
         ];
     }
 
-    protected function getPackageVersionCellStyle(string $versionCell, string $packageName): array
+    protected function normalizeSheetTitle(string $title): string
     {
-        $styling = [];
-        $cellStyleMapping = $this->stylingConfig->getCellStyleMapping();
-
-        foreach ($cellStyleMapping as $cellStyle) {
-            if (isset($cellStyle['packageNameRegex']) && !preg_match($cellStyle['packageNameRegex'], $packageName)) {
-                continue;
-            }
-
-            if (!preg_match($cellStyle['versionRegex'], $versionCell)) {
-                continue;
-            }
-
-            if (isset($cellStyle['color'])) {
-                $styling['font']['color']['rgb'] = $cellStyle['color'];
-            }
-
-            if (isset($cellStyle['backgroundColor'])) {
-                $styling['fill']['fillType'] = Fill::FILL_SOLID;
-                $styling['fill']['startColor']['rgb'] = $cellStyle['backgroundColor'];
-            }
+        $normalizedTitle = trim($title);
+        if ($normalizedTitle === '') {
+            $normalizedTitle = 'Extensions in projects';
         }
 
-        return $styling;
+        return substr($normalizedTitle, 0, 31);
     }
 }
