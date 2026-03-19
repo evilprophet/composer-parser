@@ -26,6 +26,14 @@ class ConfigValidator
         $this->assertStringInSet($appConfig, 'providerType', self::ALLOWED_PROVIDER_TYPES);
         $this->assertStringInSet($appConfig, 'parserType', self::ALLOWED_PARSER_TYPES);
         $this->assertStringInSet($appConfig, 'writerType', self::ALLOWED_WRITER_TYPES);
+
+        if (!isset($appConfig['timezone']) || !is_string($appConfig['timezone']) || trim($appConfig['timezone']) === '') {
+            throw new InvalidArgumentException('Invalid config: app.config.timezone is required and must be a non-empty string.');
+        }
+
+        if (!in_array($appConfig['timezone'], timezone_identifiers_list(), true)) {
+            throw new InvalidArgumentException(sprintf('Invalid config: app.config.timezone "%s" is not a valid timezone identifier.', $appConfig['timezone']));
+        }
     }
 
     protected function validatePackageConfig(array $packageConfig): void

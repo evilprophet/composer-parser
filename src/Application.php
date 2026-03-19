@@ -42,6 +42,7 @@ class Application extends \Symfony\Component\Console\Application
         if ($containerBuilder->getParameter('app.config')['writerType'] === 'googleSheets') {
             $configValidator->validateGoogleSheetsWriterConfig($containerBuilder->getParameter('writer.config'));
         }
+        $this->applyGlobalTimezone($containerBuilder->getParameter('app.config'));
 
         parent::__construct($name, $version);
 
@@ -69,5 +70,11 @@ class Application extends \Symfony\Component\Console\Application
     protected function isAbsolutePath(string $path): bool
     {
         return str_starts_with($path, DIRECTORY_SEPARATOR) || (bool)preg_match('/^[A-Za-z]:\\\\/', $path);
+    }
+
+    protected function applyGlobalTimezone(array $appConfig): void
+    {
+        $timezone = $appConfig['timezone'] ?? 'UTC';
+        date_default_timezone_set($timezone);
     }
 }

@@ -1,5 +1,6 @@
 parameters:
   app.config:
+    timezone: Europe/Warsaw
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
     parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (composerFull works only with gitlabApiArchive)
     writerType: xlsx #Supported: xlsx, json, html, googleSheets

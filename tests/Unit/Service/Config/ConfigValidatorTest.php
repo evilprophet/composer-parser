@@ -19,6 +19,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'gitlabApiFiles',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
@@ -65,6 +66,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'unsupported',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
@@ -102,6 +104,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'gitlabApiFiles',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
@@ -127,6 +130,44 @@ class ConfigValidatorTest extends TestCase
         );
     }
 
+    public function testValidateRejectsInvalidTimezoneIdentifier(): void
+    {
+        $validator = new ConfigValidator();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('app.config.timezone');
+
+        $validator->validate(
+            [
+                'providerType' => 'gitlabApiFiles',
+                'parserType' => 'composerJsonAndLock',
+                'writerType' => 'xlsx',
+                'timezone' => 'Mars/Phobos',
+            ],
+            [
+                'includeInstalledVersion' => true,
+                'installedVersionDisplayedIn' => 'comment',
+                'packageGroups' => [
+                    [
+                        'name' => 'All',
+                        'groupType' => 'require',
+                        'regex' => '/.*/',
+                    ],
+                ],
+            ],
+            [
+                'local' => [
+                    'fileName' => 'report-{date}',
+                    'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
+                ],
+            ],
+            [
+                'repositoryList' => [],
+            ]
+        );
+    }
+
     public function testValidateAcceptsJsonWriterType(): void
     {
         $validator = new ConfigValidator();
@@ -136,6 +177,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'gitlabApiFiles',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'json',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
@@ -179,6 +221,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'gitlabApiFiles',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'html',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
@@ -225,6 +268,7 @@ class ConfigValidatorTest extends TestCase
                 'providerType' => 'gitlabApiFiles',
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
             ],
             [
                 'includeInstalledVersion' => true,
