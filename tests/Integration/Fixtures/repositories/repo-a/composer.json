@@ -1,0 +1,12 @@
+{
+  "require": {
+    "vendor/a": "^1.0",
+    "vendor/framework": "^9.2",
+    "vendor/cache": "^3.1",
+    "vendor/http": "^7.8",
+    "vendor/log": "^2.0"
+  },
+  "require-dev": {
+    "vendor/dev-tool": "^3.0"
+  }
+}

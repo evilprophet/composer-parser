@@ -1,94 +1,123 @@
 services:
-  packageConfig.model:
-    class: \EvilStudio\ComposerParser\Model\PackageConfig
-    arguments:
-      packageConfigData: "@=container.getParameter('package.config')"
+  _defaults:
+    autowire: true
+    autoconfigure: true
 
-  stylingConfig.model:
-    class: \EvilStudio\ComposerParser\Model\StylingConfig
-    arguments:
-      stylingConfigData: "@=container.getParameter('writer.config')['styling']"
+  EvilStudio\ComposerParser\:
+    resource: '../src/*'
+    exclude:
+      - '../src/Api/'
+      - '../src/Exception/'
+      - '../src/Model/'
+      - '../src/Service/Provider/GitRepository.php'
+      - '../src/Service/Provider/Gitlab/ApiFiles.php'
+      - '../src/Service/Provider/Gitlab/ApiArchive.php'
+      - '../src/Service/Provider/ProviderManager.php'
+      - '../src/Service/Parser/ParserManager.php'
+      - '../src/Service/Writer/WriterManager.php'
+      - '../src/Service/Writer/Xlsx.php'
+      - '../src/Service/Writer/Json.php'
+      - '../src/Service/Writer/Html.php'
 
-  repositoryList.model:
-    class: \EvilStudio\ComposerParser\Model\RepositoryList
+  EvilStudio\ComposerParser\Model\PackageConfig:
     arguments:
-      repositoryList: "@=container.getParameter('repository.config')['repositoryList']"
+      $packageConfigData: "@=container.getParameter('package.config')"
 
-  provider.gitRepository.service:
-    class: \EvilStudio\ComposerParser\Service\Provider\GitRepository
+  EvilStudio\ComposerParser\Model\StylingConfig:
     arguments:
-      appDir: '%app.dir%'
+      $stylingConfigData: "@=container.getParameter('writer.config')['styling']"
 
-  provider.gitlabApiFiles.service:
-    class: \EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles
+  EvilStudio\ComposerParser\Model\RepositoryList:
     arguments:
-      appDir: '%app.dir%'
-      gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
-      gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
+      $repositoryList: "@=container.getParameter('repository.config')['repositoryList']"
 
-  provider.gitlabApiArchive.service:
-    class: \EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive
-    arguments:
-      appDir: '%app.dir%'
-      gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
-      gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
-      ansibleVaultPassword: "@=container.getParameter('app.config')['ansibleVaultPassword']"
+  EvilStudio\ComposerParser\Api\Data\PackageConfigInterface:
+    alias: EvilStudio\ComposerParser\Model\PackageConfig
 
-  providerManager.service:
-    class: \EvilStudio\ComposerParser\Service\Provider\ProviderManager
-    arguments:
-      providerType: "@=container.getParameter('app.config')['providerType']"
-      providers:
-        gitRepository: '@provider.gitRepository.service'
-        gitlabApiFiles: '@provider.gitlabApiFiles.service'
-        gitlabApiArchive: '@provider.gitlabApiArchive.service'
+  EvilStudio\ComposerParser\Api\Data\StylingConfigInterface:
+    alias: EvilStudio\ComposerParser\Model\StylingConfig
 
-  parser.composerJson.service:
-    class: \EvilStudio\ComposerParser\Service\Parser\ComposerJson
-    arguments:
-      packageConfig: '@packageConfig.model'
-      repositoryList: '@repositoryList.model'
-      providerManager: '@providerManager.service'
+  EvilStudio\ComposerParser\Api\Data\RepositoryListInterface:
+    alias: EvilStudio\ComposerParser\Model\RepositoryList
 
-  parser.composerJsonAndLock.service:
-    class: \EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock
+  EvilStudio\ComposerParser\Service\Provider\GitRepository:
     arguments:
-      packageConfig: '@packageConfig.model'
-      repositoryList: '@repositoryList.model'
-      providerManager: '@providerManager.service'
+      $appDir: '%app.dir%'
 
-  parser.composerFull.service:
-    class: \EvilStudio\ComposerParser\Service\Parser\ComposerFull
+  EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles:
     arguments:
-      packageConfig: '@packageConfig.model'
-      repositoryList: '@repositoryList.model'
-      providerManager: '@providerManager.service'
+      $appDir: '%app.dir%'
+      $gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
+      $gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
 
-  parserManager.service:
-    class: \EvilStudio\ComposerParser\Service\Parser\ParserManager
+  EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive:
     arguments:
-      parserType: "@=container.getParameter('app.config')['parserType']"
-      parsers:
-        composerJson: '@parser.composerJson.service'
-        composerJsonAndLock: '@parser.composerJsonAndLock.service'
-        composerFull: '@parser.composerFull.service'
+      $appDir: '%app.dir%'
+      $gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
+      $gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
+      $ansibleVaultPassword: "@=container.getParameter('app.config')['ansibleVaultPassword']"
 
-  writer.xlsx.service:
-    class: \EvilStudio\ComposerParser\Service\Writer\Xlsx
+  EvilStudio\ComposerParser\Service\Provider\ProviderManager:
     arguments:
-      fileName: "@=container.getParameter('writer.config')['local']['fileName']"
-      fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
-      packageConfig: '@packageConfig.model'
-      stylingConfig: '@stylingConfig.model'
+      $providerType: "@=container.getParameter('app.config')['providerType']"
+      $providers:
+        gitRepository: '@EvilStudio\ComposerParser\Service\Provider\GitRepository'
+        gitlabApiFiles: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles'
+        gitlabApiArchive: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive'
 
-  writerManager.service:
-    class: \EvilStudio\ComposerParser\Service\Writer\WriterManager
+  EvilStudio\ComposerParser\Service\Parser\ParserManager:
     arguments:
-      writerType: "@=container.getParameter('app.config')['writerType']"
-      writers:
-        xlsx: '@writer.xlsx.service'
+      $parserType: "@=container.getParameter('app.config')['parserType']"
+      $parsers:
+        composerJson: '@EvilStudio\ComposerParser\Service\Parser\ComposerJson'
+        composerJsonAndLock: '@EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock'
+        composerFull: '@EvilStudio\ComposerParser\Service\Parser\ComposerFull'
 
-  cleaner.service:
-    class: \EvilStudio\ComposerParser\Service\Cleaner
+  monolog.error_handler:
+    class: Monolog\Handler\StreamHandler
     arguments:
-      repositoryList: '@repositoryList.model'
+      - '%app.dir%/var/log/error.log'
+      - !php/const Monolog\Level::Error
+
+  monolog.logger:
+    class: Monolog\Logger
+    arguments:
+      - 'composer-parser'
+    calls:
+      - [ pushHandler, [ '@monolog.error_handler' ] ]
+
+  EvilStudio\ComposerParser\Service\Log\ErrorLogger:
+    arguments:
+      $logger: '@monolog.logger'
+
+  EvilStudio\ComposerParser\Service\Config\ConfigValidator:
+    public: true
+
+  EvilStudio\ComposerParser\Command\Run:
+    public: true
+
+  EvilStudio\ComposerParser\Command\Cleanup:
+    public: true
+
+  EvilStudio\ComposerParser\Service\Writer\Xlsx:
+    arguments:
+      $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
+      $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
+
+  EvilStudio\ComposerParser\Service\Writer\Json:
+    arguments:
+      $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
+      $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
+
+  EvilStudio\ComposerParser\Service\Writer\Html:
+    arguments:
+      $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
+      $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
+
+  EvilStudio\ComposerParser\Service\Writer\WriterManager:
+    arguments:
+      $writerType: "@=container.getParameter('app.config')['writerType']"
+      $writers:
+        xlsx: '@EvilStudio\ComposerParser\Service\Writer\Xlsx'
+        json: '@EvilStudio\ComposerParser\Service\Writer\Json'
+        html: '@EvilStudio\ComposerParser\Service\Writer\Html'

@@ -1,0 +1,30 @@
+variables:
+  COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+
+cache:
+  paths:
+    - .composer-cache/
+    - vendor/
+
+.php_template: &php_template
+  image: php:8.4-cli
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq git unzip libzip-dev zlib1g-dev libxml2-dev pkg-config build-essential autoconf libssl-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev
+    - docker-php-ext-configure gd --with-freetype --with-jpeg
+    - docker-php-ext-install -j"$(nproc)" zip gd
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-progress --no-interaction --prefer-dist
+
+lint:phpcs:
+  <<: *php_template
+  stage: test
+  script:
+    - if [ -x vendor/bin/phpcs ]; then vendor/bin/phpcs --standard=PSR12 --extensions=php src tests; else echo "phpcs not installed, skipping lint job"; fi
+
+test:phpunit:
+  <<: *php_template
+  stage: test
+  script:
+    - vendor/bin/phpunit --configuration ./phpunit.xml --testsuite Unit --no-coverage
+    - vendor/bin/phpunit --configuration ./phpunit.xml --testsuite Integration --no-coverage

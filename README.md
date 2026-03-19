@@ -1,95 +1,104 @@
 # 📦 Composer Parser
 
-## ✨ Introduction
+## Introduction
 
-Composer Parser is a CLI tool for comparing dependencies across multiple repositories. It pulls `composer.json` (optionally `composer.lock`), groups packages by configurable rules, and generates a single XLSX report for easy comparison.
+Composer Parser is a CLI tool for comparing Composer dependencies across multiple repositories.
+It collects `composer.json` (optionally `composer.lock`), groups packages by configurable rules, and exports a consolidated report.
 
-## ✅ Key Features
+## ✨ Key Features
 
-- Aggregates data from multiple repositories into one report.
-- Supports three parser modes: `composerJson`, `composerJsonAndLock`, `composerFull`.
-- Multiple data sources: local Git, GitLab API (files/zip archive).
-- Configurable package groups and cell styling rules.
-- XLSX output with comments for installed and latest versions.
+- `🔎 Multi-repository parsing`
+    - Reads dependency data from many repositories into one report.
 
-## 🧩 Requirements
+- `🧠 Multiple parser modes`
+    - `composerJson`
+    - `composerJsonAndLock`
+    - `composerFull` (includes latest versions via `composer outdated`)
 
-- PHP >= 8.3
-- PHP extensions: `ext-json`, `ext-zip`
-- Git (only for `providerType: gitRepository`)
-- `composer` in PATH (required for `parserType: composerFull`)
-- GitLab Personal Access Token with `read_repository` (for GitLab providers)
-- Ansible Vault password (optional, only for `gitlabApiArchive` + `auth.json.encrypted`)
+- `🌐 Multiple providers`
+    - `gitRepository`
+    - `gitlabApiFiles`
+    - `gitlabApiArchive`
 
-## 🛠️ Installation
+- `📤 Multiple output writers`
+    - `xlsx`
+    - `json`
+    - `html`
 
-1. Clone the repository (recommended for easy updates):
-   ```bash
-   git clone https://github.com/evilstudio/composer-parser.git
-   cd composer-parser
-   composer install
-   ```
-2. Install dependencies:
-   ```bash
-   composer install
-   ```
-3. Copy the configuration template:
-   ```bash
-   cp config/parameters.yaml.template config/parameters.yaml
-   ```
-4. Edit `config/parameters.yaml` to configure the application.
-5. Run the CLI commands (see the Commands section).
-
-## 🔄 Updating
-
-```bash
-git pull
-composer install
-```
-
-## ⚙️ Configuration (config/parameters.yaml)
-
-All fields are documented in `config/parameters.yaml.template`. Copy it and fill in values.
-
-## 💻 Commands
-
-| Command       | Description                                                   |
-|---------------|---------------------------------------------------------------|
-| `app:run`     | Fetches data from repositories and generates the XLSX report. |
-| `app:cleanup` | Removes downloaded repositories from the working directory.   |
-
-## 📄 Output
-
-- The XLSX file is written to `writer.config.local.fileDirectory`.
-- `{date}` in the filename is replaced with the current date (`Y-m-d`).
-- The sheet header includes a "Last update" timestamp.
-- With `includeInstalledVersion=true`, comments include versions from `composer.lock`.
-- In `composerFull`, a comment includes the latest version from `composer outdated`.
+- `🧩 Configurable grouping and styling`
+    - Regex-based package groups
+    - Version-based cell styling (used in XLSX and HTML)
 
 ## 📁 Project Structure
 
+```text
+.
+├── bin/             # CLI entrypoint
+├── config/          # Parameters and service configuration
+├── docs/            # Roadmap and refactor plan
+├── src/             # Application source code
+│   ├── Api/             # Contracts
+│   ├── Command/         # CLI commands
+│   ├── Exception/       # Domain exceptions
+│   ├── Model/           # Data models
+│   └── Service/         # App use-cases, parsers, providers, writers, config/report/log services
+├── tests/           # Unit and integration tests
+└── var/             # Working data (repositories, results, logs)
 ```
-bin/          # CLI entry script
-config/       # Configuration (parameters, services)
-docker/       # Docker settings (xdebug)
-src/          # Application source code
-├── Api/      # Interfaces
-├── Command/  # CLI commands
-├── Exception/  # Exceptions
-├── Model/      # Data models
-└── Service/    # Parsers, providers, writer
-var/          # Working data (repositories, results)
-vendor/       # Composer dependencies
+
+## 🚀 Quick Start
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/evilstudio/composer-parser.git
+cd composer-parser
+composer install
 ```
 
-## 📚 Documentation
+### 2. Prepare configuration
 
-- 🗺️ [Roadmap](./docs/roadmap.md)
-- 🧭 [Refactor Plan](./docs/refactor-plan.md)
+```bash
+cp config/parameters.yaml.template config/parameters.yaml
+```
 
-## 📝 Notes
+Set at least:
 
-- `parserType: composerJson` does not use `composer.lock`.
-- `parserType: composerJsonAndLock` and `composerFull` expect a valid `composer.lock`.
-- `composerFull` runs `composer outdated --format=json` in each repository directory.
-- The Dockerfile uses `php:8.3-cli`; if you rely on Docker, keep it aligned with project requirements.
+- `app.config.providerType`
+- `app.config.parserType`
+- `app.config.writerType` (`xlsx`, `json`, `html`)
+- `repository.config.repositoryList`
+
+### 3. Run parser
+
+```bash
+bin/console app:run
+```
+
+### 4. Cleanup downloaded repositories
+
+```bash
+bin/console app:cleanup
+```
+
+## 💻 Commands
+
+| Command       | Description                                                 |
+|---------------|-------------------------------------------------------------|
+| `app:run`     | Fetches data from configured repositories and writes report |
+| `app:cleanup` | Removes downloaded repositories                             |
+
+## 🧭 Notes
+
+- Output file path is built from `writer.config.local.fileDirectory` + `fileName`.
+- `{date}` in `fileName` is replaced with current date (`Y-m-d`).
+- Errors are logged to `var/log/error.log`.
+- `composerFull` requires `composer` available in PATH.
+- `gitRepository` provider requires local `git`.
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+./vendor/bin/phpunit --testdox
+```

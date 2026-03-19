@@ -8,35 +8,35 @@ use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
+use EvilStudio\ComposerParser\Model\Report;
+use EvilStudio\ComposerParser\Service\Report\ReportFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
+use Symfony\Component\Filesystem\Filesystem;
 
 class Xlsx implements WriterInterface
 {
-    protected const FILE_EXTENSION = '.xlsx';
-
-    protected string $fileName;
-    protected string $fileDirectory;
+    protected const string FILE_EXTENSION = '.xlsx';
 
     protected Spreadsheet $spreadsheet;
-    protected PackageConfigInterface $packageConfig;
-    protected StylingConfigInterface $stylingConfig;
 
-    public function __construct(string $fileName, string $fileDirectory, PackageConfigInterface $packageConfig, StylingConfigInterface $stylingConfig)
-    {
-        $this->fileName = $fileName;
-        $this->fileDirectory = $fileDirectory;
-        $this->packageConfig = $packageConfig;
-        $this->stylingConfig = $stylingConfig;
-    }
+    public function __construct(
+        protected string $fileName,
+        protected string $fileDirectory,
+        protected PackageConfigInterface $packageConfig,
+        protected StylingConfigInterface $stylingConfig,
+        protected ReportFactory $reportFactory
+    ) {}
 
     public function execute(ParsedDataInterface $parsedData): void
     {
+        $report = $this->reportFactory->build($parsedData);
+
         $this->prepareSpreadsheet();
 
-        $this->prepareHeader($parsedData->getProjectNames());
-        $this->prepareData($parsedData->getProjectsData());
+        $this->prepareHeader($report->getProjectNames());
+        $this->prepareData($report);
 
         $this->writeSpreadsheet();
     }
@@ -74,10 +74,12 @@ class Xlsx implements WriterInterface
         }
     }
 
-    protected function prepareData(array $parsedComposerJson): void
+    protected function prepareData(Report $report): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
         $packageGroups = $this->packageConfig->getPackageGroupsForWriter();
+
+        $parsedComposerJson = $report->getGroups();
 
         $column = 1;
         $row = 2;
@@ -119,9 +121,8 @@ class Xlsx implements WriterInterface
 
     protected function getFileDirectory(): string
     {
-        if (!file_exists($this->fileDirectory)) {
-            mkdir($this->fileDirectory, 0777, true);
-        }
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($this->fileDirectory, 0777);
 
         return $this->fileDirectory;
     }
