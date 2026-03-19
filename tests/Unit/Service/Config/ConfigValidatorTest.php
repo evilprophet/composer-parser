@@ -35,6 +35,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
                 ],
             ],
             [
@@ -80,6 +81,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
                 ],
             ],
             [
@@ -116,6 +118,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
                 ],
             ],
             [
@@ -149,6 +152,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
                 ],
             ],
             [
@@ -191,6 +195,7 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                    'sheetName' => 'Extensions in projects',
                 ],
             ],
             [
@@ -206,5 +211,77 @@ class ConfigValidatorTest extends TestCase
         );
 
         self::assertTrue(true);
+    }
+
+    public function testValidateRejectsMissingSheetName(): void
+    {
+        $validator = new ConfigValidator();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('writer.config.local.sheetName');
+
+        $validator->validate(
+            [
+                'providerType' => 'gitlabApiFiles',
+                'parserType' => 'composerJsonAndLock',
+                'writerType' => 'xlsx',
+            ],
+            [
+                'includeInstalledVersion' => true,
+                'installedVersionDisplayedIn' => 'comment',
+                'packageGroups' => [
+                    [
+                        'name' => 'All',
+                        'groupType' => 'require',
+                        'regex' => '/.*/',
+                    ],
+                ],
+            ],
+            [
+                'local' => [
+                    'fileName' => 'report-{date}',
+                    'fileDirectory' => 'var/results',
+                ],
+            ],
+            [
+                'repositoryList' => [
+                    [
+                        'name' => 'project-a',
+                        'directory' => 'var/repositories/project-a',
+                        'remote' => 'git@gitlab.example.com:team/project-a.git',
+                        'branch' => 'main',
+                    ],
+                ],
+            ]
+        );
+    }
+
+    public function testValidateGoogleSheetsWriterConfigAcceptsValidConfiguration(): void
+    {
+        $validator = new ConfigValidator();
+
+        $validator->validateGoogleSheetsWriterConfig([
+            'googleSheets' => [
+                'spreadsheetId' => 'spreadsheet-id',
+                'serviceAccountJsonPath' => '/tmp/google-service-account.json',
+            ],
+        ]);
+
+        self::assertTrue(true);
+    }
+
+    public function testValidateGoogleSheetsWriterConfigRejectsMissingSpreadsheetId(): void
+    {
+        $validator = new ConfigValidator();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('writer.config.googleSheets.spreadsheetId');
+
+        $validator->validateGoogleSheetsWriterConfig([
+            'googleSheets' => [
+                'spreadsheetId' => '',
+                'serviceAccountJsonPath' => '/tmp/google-service-account.json',
+            ],
+        ]);
     }
 }

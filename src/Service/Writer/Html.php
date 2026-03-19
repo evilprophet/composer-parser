@@ -9,11 +9,16 @@ use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\StylingConfigInterface;
 use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Symfony\Component\Filesystem\Filesystem;
+use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
+use EvilStudio\ComposerParser\Service\Writer\Support\OrdersGroupsByConfig;
+use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesVersionCellStyle;
 
 class Html implements WriterInterface
 {
+    use HandlesLocalOutputPath;
+    use OrdersGroupsByConfig;
+    use ResolvesVersionCellStyle;
+
     protected const string FILE_EXTENSION = '.html';
 
     public function __construct(
@@ -110,66 +115,9 @@ class Html implements WriterInterface
         file_put_contents($this->getFilePath(), $content);
     }
 
-    protected function getFileDirectory(): string
-    {
-        $filesystem = new Filesystem();
-        $filesystem->mkdir($this->fileDirectory, 0777);
-
-        return $this->fileDirectory;
-    }
-
-    protected function getFilePath(): string
-    {
-        $fileName = str_replace('{date}', date('Y-m-d'), $this->fileName);
-
-        return $this->getFileDirectory() . DIRECTORY_SEPARATOR . $fileName . self::FILE_EXTENSION;
-    }
-
     protected function escape(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
-    protected function getOrderedGroups(array $groups): array
-    {
-        $orderedGroups = [];
-        foreach ($this->packageConfig->getPackageGroupsForWriter() as $packageGroup) {
-            $groupName = $packageGroup['name'];
-            if (!array_key_exists($groupName, $groups)) {
-                continue;
-            }
-
-            $orderedGroups[$groupName] = $groups[$groupName];
-        }
-
-        return $orderedGroups;
-    }
-
-    protected function getPackageVersionCellStyle(string $versionCell, string $packageName): array
-    {
-        $styling = [];
-        $cellStyleMapping = $this->stylingConfig->getCellStyleMapping();
-
-        foreach ($cellStyleMapping as $cellStyle) {
-            if (isset($cellStyle['packageNameRegex']) && !preg_match($cellStyle['packageNameRegex'], $packageName)) {
-                continue;
-            }
-
-            if (!preg_match($cellStyle['versionRegex'], $versionCell)) {
-                continue;
-            }
-
-            if (isset($cellStyle['color'])) {
-                $styling['font']['color']['rgb'] = $cellStyle['color'];
-            }
-
-            if (isset($cellStyle['backgroundColor'])) {
-                $styling['fill']['fillType'] = Fill::FILL_SOLID;
-                $styling['fill']['startColor']['rgb'] = $cellStyle['backgroundColor'];
-            }
-        }
-
-        return $styling;
     }
 
     protected function buildStyleAttribute(array $style): string
