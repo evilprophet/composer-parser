@@ -22,11 +22,13 @@ class Repository implements RepositoryInterface
         $this->branch = $repositoryConfig['branch'];
         $this->directory = $repositoryConfig['directory'];
 
-        if (!preg_match('/:(.*\/.*)\.git/', $this->remote, $repositoryName) || empty($repositoryName[1])) {
+        $repositoryName = $this->extractRepositoryName($this->remote);
+        if ($repositoryName === '') {
             throw new \InvalidArgumentException('Unsupported git remote format: ' . $this->remote);
         }
-        $this->repositoryName = $repositoryName[1];
-        $this->remoteProjectName = explode('/', $this->repositoryName)[1];
+
+        $this->repositoryName = $repositoryName;
+        $this->remoteProjectName = basename($this->repositoryName);
     }
 
     public function getProjectName(): string
@@ -57,5 +59,20 @@ class Repository implements RepositoryInterface
     public function getDirectory(): string
     {
         return $this->directory;
+    }
+
+    protected function extractRepositoryName(string $remote): string
+    {
+        $matches = [];
+
+        if (preg_match('/^[^@]+@[^:]+:(?<path>.+?)(?:\.git)?$/', $remote, $matches) === 1) {
+            return trim((string) ($matches['path'] ?? ''), '/');
+        }
+
+        if (preg_match('#^(?:https?|ssh)://[^/]+/(?<path>.+?)(?:\.git)?/?$#', $remote, $matches) === 1) {
+            return trim((string) ($matches['path'] ?? ''), '/');
+        }
+
+        return '';
     }
 }
