@@ -10,24 +10,21 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
-use EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException;
 use EvilStudio\ComposerParser\Model\ParsedData;
+use EvilStudio\ComposerParser\Model\RepositoryData;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
+use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
 
 class ComposerJson implements ParserInterface
 {
-    protected PackageConfigInterface $packageConfig;
-    protected RepositoryListInterface $repositoryList;
-    protected ProviderManager $providerManager;
-
     protected array $parsedData = [];
 
-    public function __construct(PackageConfigInterface $packageConfig, RepositoryListInterface $repositoryList, ProviderManager $providerManager)
-    {
-        $this->packageConfig = $packageConfig;
-        $this->repositoryList = $repositoryList;
-        $this->providerManager = $providerManager;
-    }
+    public function __construct(
+        protected PackageConfigInterface $packageConfig,
+        protected RepositoryListInterface $repositoryList,
+        protected ProviderManager $providerManager,
+        protected RepositoryDataFactory $repositoryDataFactory
+    ) {}
 
     public function execute(): ParsedDataInterface
     {
@@ -44,12 +41,19 @@ class ComposerJson implements ParserInterface
         return new ParsedData($this->parsedData, $projectNames);
     }
 
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
+    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): RepositoryData
     {
         $provider->load($repository);
-        $composerJsonContent = $provider->getComposerJsonContent();
-        $this->parseComposerJsonFile($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
-        $this->parsePatchSet($composerJsonContent, $projectNamesGrouped, $repository->getProjectName());
+
+        $repositoryData = $this->repositoryDataFactory->create(
+            $provider->getComposerJsonContent(),
+            $provider->getComposerLockContent()
+        );
+
+        $this->parseComposerJsonFile($repositoryData->getComposerJson(), $projectNamesGrouped, $repository->getProjectName());
+        $this->parsePatchSet($repositoryData->getComposerJson(), $projectNamesGrouped, $repository->getProjectName());
+
+        return $repositoryData;
     }
 
     protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
@@ -70,7 +74,7 @@ class ComposerJson implements ParserInterface
         }
     }
 
-    protected function parseGroup(array $group, string $projectName, string $groupType)
+    protected function parseGroup(array $group, string $projectName, string $groupType): void
     {
         $packageGroups = $this->packageConfig->getPackageGroupsForParser($groupType);
 
@@ -87,9 +91,6 @@ class ComposerJson implements ParserInterface
         }
     }
 
-    /**
-     * Function parsing data from extra/patchset section in composer.json where patches applied by mageops/php-composer-plugin-patchset are configured
-     */
     protected function parsePatchSet(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void
     {
         if (!isset($composerJsonContent['extra']['patchset'])) {

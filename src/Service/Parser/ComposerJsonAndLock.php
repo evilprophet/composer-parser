@@ -7,20 +7,22 @@ namespace EvilStudio\ComposerParser\Service\Parser;
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
+use EvilStudio\ComposerParser\Model\RepositoryData;
 
 class ComposerJsonAndLock extends ComposerJson
 {
-    protected const COMMENT_INSTALLED_VERSION = "Installed version: %s\n";
+    protected const string COMMENT_INSTALLED_VERSION = "Installed version: %s\n";
 
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
+    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): RepositoryData
     {
-        parent::executePerRepository($repository, $provider, $projectNamesGrouped);
+        $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
-        $composerLockContent = $provider->getComposerLockContent();
-        if ($this->packageConfig->includeInstalledVersion() && !empty($composerLockContent)) {
-            $this->parseComposerLockFile($composerLockContent, $repository->getProjectName());
-            $this->checkObservedPackages($composerLockContent, $repository->getProjectName());
+        if ($this->packageConfig->includeInstalledVersion() && !empty($repositoryData->getComposerLock())) {
+            $this->parseComposerLockFile($repositoryData->getComposerLock(), $repository->getProjectName());
+            $this->checkObservedPackages($repositoryData->getComposerLock(), $repository->getProjectName());
         }
+
+        return $repositoryData;
     }
 
     protected function parseComposerLockFile(array $composerLockContent, string $projectName): void
@@ -29,7 +31,10 @@ class ComposerJsonAndLock extends ComposerJson
             $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE),
             $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_PATCHSET)
         );
-        $packagesInstalled = $composerLockContent['packages'];
+        $packagesInstalled = $composerLockContent['packages'] ?? [];
+        if ($packagesInstalled === []) {
+            return;
+        }
 
         foreach ($this->parsedData as $packageGroupName => $packageGroup) {
             if (in_array($packageGroupName, array_column($skippedPackageGroups, 'name'))) {
@@ -75,7 +80,7 @@ class ComposerJsonAndLock extends ComposerJson
         }
     }
 
-    protected function addInstalledVersion($packageGroupName, $packageName, $projectName, $version): void
+    protected function addInstalledVersion(string $packageGroupName, string $packageName, string $projectName, string $version): void
     {
         switch ($this->packageConfig->installedVersionDisplayedIn()) {
             case PackageConfigInterface::INSTALLED_VERSION_DISPLAYED_IN_VALUE:

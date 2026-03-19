@@ -4,6 +4,15 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use EvilStudio\ComposerParser\Application;
+use Symfony\Component\Console\Command\Command;
 
-$app = new Application();
-$app->run();
+try {
+    $app = new Application();
+    exit($app->run());
+} catch (\InvalidArgumentException $exception) {
+    fwrite(STDERR, $exception->getMessage() . PHP_EOL);
+    exit(Command::INVALID);
+} catch (\Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . PHP_EOL);
+    exit(Command::FAILURE);
+}

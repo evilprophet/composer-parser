@@ -7,21 +7,24 @@ namespace EvilStudio\ComposerParser\Service\Parser;
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
+use EvilStudio\ComposerParser\Model\RepositoryData;
 use mikehaertl\shellcommand\Command;
 
 class ComposerFull extends ComposerJsonAndLock
 {
-    protected const COMPOSER_OUTDATED_CMD_COMMAND = 'cd %s; composer outdated --format=json';
-    protected const COMMENT_NEWEST_VERSION = "Latest version: %s\n";
+    protected const string COMPOSER_OUTDATED_CMD_COMMAND = 'cd %s; composer outdated --format=json';
+    protected const string COMMENT_NEWEST_VERSION = "Latest version: %s\n";
 
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): void
+    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): RepositoryData
     {
-        parent::executePerRepository($repository, $provider, $projectNamesGrouped);
+        $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
         $this->addLatestAvailableVersion($provider->getLocalRepositoryDirectory(), $repository->getProjectName());
+
+        return $repositoryData;
     }
 
-    protected function addLatestAvailableVersion(string $repositoryDirectoryPath, string $projectName)
+    protected function addLatestAvailableVersion(string $repositoryDirectoryPath, string $projectName): void
     {
         $command = new Command(sprintf(self::COMPOSER_OUTDATED_CMD_COMMAND, escapeshellarg($repositoryDirectoryPath)));
         $command->execute();

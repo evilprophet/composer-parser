@@ -4,39 +4,38 @@ declare(strict_types=1);
 
 namespace EvilStudio\ComposerParser\Command;
 
-use EvilStudio\ComposerParser\Service\Parser\ParserManager;
-use EvilStudio\ComposerParser\Service\Writer\WriterManager;
+use EvilStudio\ComposerParser\Service\App\RunReport;
+use EvilStudio\ComposerParser\Service\Log\ErrorLogger;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
+#[AsCommand(
+    name: 'app:run',
+    description: "Run this command to parser all repositories configured in 'config/parameters.yaml'."
+)]
 class Run extends Command
 {
-    protected ParserManager $parserManager;
-    protected WriterManager $writerManager;
-
-    public function __construct(ParserManager $parserManager, WriterManager $writerManager, ?string $name = null)
-    {
+    public function __construct(
+        protected RunReport $runReport,
+        protected ErrorLogger $errorLogger,
+        ?string $name = null
+    ) {
         parent::__construct($name);
-
-        $this->parserManager = $parserManager;
-        $this->writerManager = $writerManager;
-    }
-
-    protected function configure()
-    {
-        $this
-            ->setName('app:run')
-            ->setDescription("Run this command to parser all repositories configured in 'config/parameters.yaml'.");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $parser = $this->parserManager->getParser();
-        $parsedData = $parser->execute();
+        try {
+            $this->runReport->execute();
+        } catch (Throwable $throwable) {
+            $this->errorLogger->logThrowable($throwable);
+            $output->writeln('<error>' . $throwable->getMessage() . '</error>');
 
-        $writer = $this->writerManager->getWriter();
-        $writer->execute($parsedData);
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
     }
