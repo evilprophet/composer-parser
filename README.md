@@ -76,6 +76,12 @@ Set at least:
 bin/console app:run
 ```
 
+Use custom parameters file:
+
+```bash
+bin/console app:run -p config/parameters.custom.yaml
+```
+
 ### 4. Cleanup downloaded repositories
 
 ```bash

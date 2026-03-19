@@ -14,7 +14,7 @@ use Throwable;
 
 #[AsCommand(
     name: 'app:run',
-    description: "Run this command to parser all repositories configured in 'config/parameters.yaml'."
+    description: "Run parser for all repositories configured in parameters YAML."
 )]
 class Run extends Command
 {

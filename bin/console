@@ -6,8 +6,35 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use EvilStudio\ComposerParser\Application;
 use Symfony\Component\Console\Command\Command;
 
+[$parametersFile, $cleanedArgv] = (function (array $argv): array {
+    $parametersFile = null;
+    $cleaned = [$argv[0] ?? 'bin/console'];
+
+    for ($index = 1; $index < count($argv); $index++) {
+        $arg = $argv[$index];
+
+        if (str_starts_with($arg, '--parameters-file=')) {
+            $parametersFile = substr($arg, strlen('--parameters-file='));
+            continue;
+        }
+
+        if ($arg === '--parameters-file' || $arg === '-p') {
+            $parametersFile = $argv[$index + 1] ?? null;
+            $index++;
+            continue;
+        }
+
+        $cleaned[] = $arg;
+    }
+
+    return [$parametersFile, $cleaned];
+})($_SERVER['argv'] ?? $argv ?? []);
+
+$_SERVER['argv'] = $cleanedArgv;
+$_SERVER['argc'] = count($cleanedArgv);
+
 try {
-    $app = new Application();
+    $app = new Application($parametersFile);
     exit($app->run());
 } catch (\InvalidArgumentException $exception) {
     fwrite(STDERR, $exception->getMessage() . PHP_EOL);
