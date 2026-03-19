@@ -74,18 +74,14 @@ Set at least:
 
 ```bash
 bin/console app:run
-```
-
-Use custom parameters file:
-
-```bash
-bin/console app:run -p config/parameters.custom.yaml
+bin/console app:run -p config/parameters.custom.yaml #To use custom parameters file
 ```
 
 ### 4. Cleanup downloaded repositories
 
 ```bash
 bin/console app:cleanup
+bin/console app:cleanup -p config/parameters.custom.yaml #To use custom parameters file
 ```
 
 ## 💻 Commands
