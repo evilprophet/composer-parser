@@ -8,6 +8,8 @@ use EvilStudio\ComposerParser\Api\GoogleSheetsClientInterface;
 
 class GoogleSheetsClient implements GoogleSheetsClientInterface
 {
+    protected const int PROJECT_COLUMN_PIXEL_SIZE = 95;
+
     public function write(
         string $serviceAccountJsonPath,
         string $spreadsheetId,
@@ -160,7 +162,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
                         'endIndex' => $columnCount,
                     ],
                     'properties' => [
-                        'pixelSize' => 95,
+                        'pixelSize' => self::PROJECT_COLUMN_PIXEL_SIZE,
                     ],
                     'fields' => 'pixelSize',
                 ],

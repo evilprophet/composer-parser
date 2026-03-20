@@ -68,7 +68,7 @@ Set at least:
 - `app.config.parserType`
 - `app.config.writerType` (`xlsx`, `json`, `html`, `googleSheets`)
 - `repository.config.repositoryList`
-- `writer.config.local.sheetName` (required)
+- `writer.config.shared.sheetName` (required)
 
 ### 3. Run parser
 
@@ -96,7 +96,7 @@ bin/console app:cleanup -p config/parameters.custom.yaml #To use custom paramete
 Common local writer fields:
 - `writer.config.local.fileName`
 - `writer.config.local.fileDirectory`
-- `writer.config.local.sheetName` (required, used by `xlsx` and `googleSheets`)
+- `writer.config.shared.sheetName` (required, used by `xlsx` and `googleSheets`)
 
 Google Sheets writer (`writerType: googleSheets`) requires:
 - `writer.config.googleSheets.spreadsheetId`
@@ -110,7 +110,7 @@ Google Sheets writer (`writerType: googleSheets`) requires:
 4. Share target spreadsheet with the Service Account email as `Editor`.
 5. Set in config:
   - `app.config.writerType: googleSheets`
-  - `writer.config.local.sheetName`
+  - `writer.config.shared.sheetName`
   - `writer.config.googleSheets.spreadsheetId`
   - `writer.config.googleSheets.serviceAccountJsonPath`
 

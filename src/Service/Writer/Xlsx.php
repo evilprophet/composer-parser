@@ -22,6 +22,7 @@ class Xlsx implements WriterInterface
     use ResolvesVersionCellStyle;
 
     protected const string FILE_EXTENSION = '.xlsx';
+    protected const int PROJECT_COLUMN_WIDTH = 10;
 
     protected Spreadsheet $spreadsheet;
 
@@ -75,7 +76,7 @@ class Xlsx implements WriterInterface
         foreach ($projectNames as $projectName) {
             $sheet->setCellValue([$column, 1], $projectName);
             $sheet->getStyle([$column, 1])->applyFromArray($this->getHeaderStyle());
-            $sheet->getColumnDimensionByColumn($column)->setWidth(10);
+            $sheet->getColumnDimensionByColumn($column)->setWidth(self::PROJECT_COLUMN_WIDTH);
             $column++;
         }
     }
@@ -151,11 +152,6 @@ class Xlsx implements WriterInterface
 
     protected function normalizeSheetTitle(string $title): string
     {
-        $normalizedTitle = trim($title);
-        if ($normalizedTitle === '') {
-            $normalizedTitle = 'Packages in projects';
-        }
-
-        return substr($normalizedTitle, 0, 31);
+        return substr(trim($title), 0, 31);
     }
 }

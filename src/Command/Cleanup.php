@@ -28,15 +28,31 @@ class Cleanup extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $startedAt = microtime(true);
+
         try {
             $this->cleanup->execute();
         } catch (Throwable $throwable) {
             $this->errorLogger->logThrowable($throwable);
             $output->writeln('<error>' . $throwable->getMessage() . '</error>');
+            $output->writeln(sprintf(
+                '<error>Cleanup failed (%s).</error>',
+                $this->formatDuration(microtime(true) - $startedAt)
+            ));
 
             return Command::FAILURE;
         }
 
+        $output->writeln(sprintf(
+            '<info>Cleanup completed successfully (%s).</info>',
+            $this->formatDuration(microtime(true) - $startedAt)
+        ));
+
         return Command::SUCCESS;
+    }
+
+    protected function formatDuration(float $seconds): string
+    {
+        return sprintf('%.2fs', $seconds);
     }
 }

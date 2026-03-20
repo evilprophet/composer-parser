@@ -9,6 +9,7 @@ use InvalidArgumentException;
 class ConfigValidator
 {
     protected const array ALLOWED_PROVIDER_TYPES = ['gitRepository', 'gitlabApiFiles', 'gitlabApiArchive'];
+    protected const array GITLAB_PROVIDER_TYPES = ['gitlabApiFiles', 'gitlabApiArchive'];
     protected const array ALLOWED_PARSER_TYPES = ['composerJson', 'composerJsonAndLock', 'composerFull'];
     protected const array ALLOWED_WRITER_TYPES = ['xlsx', 'json', 'html', 'googleSheets'];
     protected const array ALLOWED_INSTALLED_VERSION_DISPLAY = ['value', 'comment'];
@@ -33,6 +34,24 @@ class ConfigValidator
 
         if (!in_array($appConfig['timezone'], timezone_identifiers_list(), true)) {
             throw new InvalidArgumentException(sprintf('Invalid config: app.config.timezone "%s" is not a valid timezone identifier.', $appConfig['timezone']));
+        }
+
+        if (!in_array($appConfig['providerType'], self::GITLAB_PROVIDER_TYPES, true)) {
+            return;
+        }
+
+        if (!isset($appConfig['gitlab']) || !is_array($appConfig['gitlab'])) {
+            throw new InvalidArgumentException('Invalid config: app.config.gitlab must be an array for GitLab providers.');
+        }
+
+        foreach (['url', 'apiToken'] as $requiredField) {
+            if (!isset($appConfig['gitlab'][$requiredField]) || !is_string($appConfig['gitlab'][$requiredField]) || trim($appConfig['gitlab'][$requiredField]) === '') {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid config: app.config.gitlab.%s is required for providerType=%s.',
+                    $requiredField,
+                    $appConfig['providerType']
+                ));
+            }
         }
     }
 
@@ -71,10 +90,18 @@ class ConfigValidator
             throw new InvalidArgumentException('Invalid config: writer.config.local must be an array.');
         }
 
-        foreach (['fileName', 'fileDirectory', 'sheetName'] as $requiredField) {
+        foreach (['fileName', 'fileDirectory'] as $requiredField) {
             if (!isset($writerConfig['local'][$requiredField]) || !is_string($writerConfig['local'][$requiredField]) || $writerConfig['local'][$requiredField] === '') {
                 throw new InvalidArgumentException(sprintf('Invalid config: writer.config.local.%s is required and must be a non-empty string.', $requiredField));
             }
+        }
+
+        if (!isset($writerConfig['shared']) || !is_array($writerConfig['shared'])) {
+            throw new InvalidArgumentException('Invalid config: writer.config.shared must be an array.');
+        }
+
+        if (!isset($writerConfig['shared']['sheetName']) || !is_string($writerConfig['shared']['sheetName']) || trim($writerConfig['shared']['sheetName']) === '') {
+            throw new InvalidArgumentException('Invalid config: writer.config.shared.sheetName is required and must be a non-empty string.');
         }
 
         if (isset($writerConfig['googleSheets']) && !is_array($writerConfig['googleSheets'])) {

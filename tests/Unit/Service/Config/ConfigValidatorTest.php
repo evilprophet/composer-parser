@@ -20,6 +20,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
                 'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -36,6 +37,8 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -83,6 +86,8 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -105,6 +110,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
                 'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -121,6 +127,8 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -143,6 +151,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
                 'timezone' => 'Mars/Phobos',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -159,6 +168,49 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
+                    'sheetName' => 'Packages in projects',
+                ],
+            ],
+            [
+                'repositoryList' => [],
+            ]
+        );
+    }
+
+    public function testValidateRejectsMissingGitlabApiTokenForGitlabProvider(): void
+    {
+        $validator = new ConfigValidator();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('app.config.gitlab.apiToken');
+
+        $validator->validate(
+            [
+                'providerType' => 'gitlabApiFiles',
+                'parserType' => 'composerJsonAndLock',
+                'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => ''],
+            ],
+            [
+                'includeInstalledVersion' => true,
+                'installedVersionDisplayedIn' => 'comment',
+                'packageGroups' => [
+                    [
+                        'name' => 'All',
+                        'groupType' => 'require',
+                        'regex' => '/.*/',
+                    ],
+                ],
+            ],
+            [
+                'local' => [
+                    'fileName' => 'report-{date}',
+                    'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -178,6 +230,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'json',
                 'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -194,6 +247,8 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -222,6 +277,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'html',
                 'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -238,6 +294,8 @@ class ConfigValidatorTest extends TestCase
                 'local' => [
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
             ],
@@ -261,7 +319,7 @@ class ConfigValidatorTest extends TestCase
         $validator = new ConfigValidator();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('writer.config.local.sheetName');
+        $this->expectExceptionMessage('writer.config.shared.sheetName');
 
         $validator->validate(
             [
@@ -269,6 +327,7 @@ class ConfigValidatorTest extends TestCase
                 'parserType' => 'composerJsonAndLock',
                 'writerType' => 'xlsx',
                 'timezone' => 'Europe/Warsaw',
+                'gitlab' => ['url' => 'https://gitlab.example.com', 'apiToken' => 'token'],
             ],
             [
                 'includeInstalledVersion' => true,
@@ -286,6 +345,7 @@ class ConfigValidatorTest extends TestCase
                     'fileName' => 'report-{date}',
                     'fileDirectory' => 'var/results',
                 ],
+                'shared' => [],
             ],
             [
                 'repositoryList' => [

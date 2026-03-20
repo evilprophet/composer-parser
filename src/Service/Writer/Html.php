@@ -20,6 +20,8 @@ class Html implements WriterInterface
     use ResolvesVersionCellStyle;
 
     protected const string FILE_EXTENSION = '.html';
+    protected const int PACKAGE_COLUMN_WIDTH_PX = 300;
+    protected const int PROJECT_COLUMN_WIDTH_PX = 85;
 
     public function __construct(
         protected string $fileName,
@@ -52,8 +54,8 @@ class Html implements WriterInterface
         $html[] = 'table { border-collapse: collapse; width: 100%; table-layout: fixed; }';
         $html[] = 'thead th { position: sticky; top: 0; z-index: 2; background: #f7f7f7; text-align: left; }';
         $html[] = 'th, td { border: 1px solid #ddd; padding: 8px; font-size: 13px; vertical-align: top; }';
-        $html[] = 'th.col-package, td.col-package { width: 300px; }';
-        $html[] = 'th.col-project, td.col-project { width: 85px; }';
+        $html[] = sprintf('th.col-package, td.col-package { width: %dpx; }', self::PACKAGE_COLUMN_WIDTH_PX);
+        $html[] = sprintf('th.col-project, td.col-project { width: %dpx; }', self::PROJECT_COLUMN_WIDTH_PX);
         $html[] = 'th.col-package { position: sticky; left: 0; z-index: 3; background: #f7f7f7; }';
         $html[] = 'td.col-package { position: sticky; left: 0; z-index: 1; background: #fff; }';
         $html[] = 'td.col-package { font-weight: 700; }';

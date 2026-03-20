@@ -59,7 +59,7 @@ services:
       $appDir: '%app.dir%'
       $gitlabUrl: "@=container.getParameter('app.config')['gitlab']['url']"
       $gitlabApiToken: "@=container.getParameter('app.config')['gitlab']['apiToken']"
-      $ansibleVaultPassword: "@=container.getParameter('app.config')['ansibleVaultPassword']"
+      $ansibleVaultPassword: "@=container.getParameter('app.config')['ansibleVaultPassword'] ?? ''"
 
   EvilStudio\ComposerParser\Service\Provider\ProviderManager:
     arguments:
@@ -107,7 +107,7 @@ services:
     arguments:
       $fileName: "@=container.getParameter('writer.config')['local']['fileName']"
       $fileDirectory: "@=container.getParameter('writer.config')['local']['fileDirectory']"
-      $sheetName: "@=container.getParameter('writer.config')['local']['sheetName']"
+      $sheetName: "@=container.getParameter('writer.config')['shared']['sheetName']"
 
   EvilStudio\ComposerParser\Service\Writer\Json:
     arguments:
@@ -121,7 +121,7 @@ services:
 
   EvilStudio\ComposerParser\Service\Writer\GoogleSheets:
     arguments:
-      $sheetName: "@=container.getParameter('writer.config')['local']['sheetName']"
+      $sheetName: "@=container.getParameter('writer.config')['shared']['sheetName']"
       $spreadsheetId: "@=container.getParameter('writer.config')['googleSheets']['spreadsheetId']"
       $serviceAccountJsonPath: "@=container.getParameter('writer.config')['googleSheets']['serviceAccountJsonPath']"
 
