@@ -19,4 +19,5 @@ interface ProviderInterface
 
     public function getComposerLockContent(): array;
 
+    public function getLocalRepositoryDirectory(): string;
 }

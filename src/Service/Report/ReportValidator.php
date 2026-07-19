@@ -14,7 +14,7 @@ class ReportValidator
         $projects = $parsedData->getProjectNames();
         $projectSet = array_flip($projects);
 
-        $groups = $parsedData->getProjectsData();
+        $groups = $parsedData->getGroups();
 
         foreach ($groups as $groupName => $packages) {
             if (!is_array($packages)) {

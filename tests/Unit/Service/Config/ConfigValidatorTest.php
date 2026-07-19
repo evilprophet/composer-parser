@@ -10,6 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 class ConfigValidatorTest extends TestCase
 {
+    protected const array VALID_STYLING_CONFIG = [
+        'groupHeaderBackgroundColor' => 'F2F2F2',
+        'cellStyleMapping' => [
+            [
+                'packageNameRegex' => '/^vendor\//',
+                'versionRegex' => '/.*/',
+                'color' => 'FF8000',
+            ],
+        ],
+    ];
+
     public function testValidateAcceptsValidConfiguration(): void
     {
         $validator = new ConfigValidator();
@@ -28,6 +39,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -41,6 +54,7 @@ class ConfigValidatorTest extends TestCase
                 'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
+                'styling' => self::VALID_STYLING_CONFIG,
             ],
             [
                 'repositoryList' => [
@@ -77,6 +91,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -90,6 +106,7 @@ class ConfigValidatorTest extends TestCase
                 'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
+                'styling' => self::VALID_STYLING_CONFIG,
             ],
             [
                 'repositoryList' => [],
@@ -118,6 +135,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/(/',
                     ],
@@ -159,6 +178,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -200,6 +221,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -238,6 +261,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -285,6 +310,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -298,6 +325,7 @@ class ConfigValidatorTest extends TestCase
                 'shared' => [
                     'sheetName' => 'Packages in projects',
                 ],
+                'styling' => self::VALID_STYLING_CONFIG,
             ],
             [
                 'repositoryList' => [
@@ -335,6 +363,8 @@ class ConfigValidatorTest extends TestCase
                 'packageGroups' => [
                     [
                         'name' => 'All',
+                        'parserPriority' => 0,
+                        'writerOrder' => 0,
                         'groupType' => 'require',
                         'regex' => '/.*/',
                     ],
@@ -358,6 +388,140 @@ class ConfigValidatorTest extends TestCase
                 ],
             ]
         );
+    }
+
+    public function testValidateRejectsInvalidXlsxSheetName(): void
+    {
+        $validator = new ConfigValidator();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('writer.config.shared.sheetName');
+
+        $validator->validate(
+            [
+                'providerType' => 'gitRepository',
+                'parserType' => 'composerJson',
+                'writerType' => 'xlsx',
+                'timezone' => 'Europe/Warsaw',
+            ],
+            [
+                'includeInstalledVersion' => false,
+                'installedVersionDisplayedIn' => 'comment',
+                'packageGroups' => [],
+            ],
+            [
+                'local' => [
+                    'fileName' => 'report-{date}',
+                    'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
+                    'sheetName' => 'bad/name',
+                ],
+                'styling' => self::VALID_STYLING_CONFIG,
+            ],
+            [
+                'repositoryList' => [],
+            ]
+        );
+    }
+
+    public function testValidateAllowsSlashInGoogleSheetsSheetName(): void
+    {
+        $validator = new ConfigValidator();
+
+        $validator->validate(
+            [
+                'providerType' => 'gitRepository',
+                'parserType' => 'composerJson',
+                'writerType' => 'googleSheets',
+                'timezone' => 'Europe/Warsaw',
+            ],
+            [
+                'includeInstalledVersion' => false,
+                'installedVersionDisplayedIn' => 'comment',
+                'packageGroups' => [],
+            ],
+            [
+                'local' => [
+                    'fileName' => 'report-{date}',
+                    'fileDirectory' => 'var/results',
+                ],
+                'shared' => [
+                    'sheetName' => 'valid/google-sheet-name',
+                ],
+                'styling' => self::VALID_STYLING_CONFIG,
+            ],
+            [
+                'repositoryList' => [],
+            ]
+        );
+
+        self::assertTrue(true);
+    }
+
+    public function testValidateRejectsMalformedStylingConfiguration(): void
+    {
+        $appConfig = [
+            'providerType' => 'gitRepository',
+            'parserType' => 'composerJson',
+            'writerType' => 'xlsx',
+            'timezone' => 'Europe/Warsaw',
+        ];
+        $packageConfig = [
+            'includeInstalledVersion' => false,
+            'installedVersionDisplayedIn' => 'comment',
+            'packageGroups' => [],
+        ];
+        $baseWriterConfig = [
+            'local' => [
+                'fileName' => 'report-{date}',
+                'fileDirectory' => 'var/results',
+            ],
+            'shared' => [
+                'sheetName' => 'Packages in projects',
+            ],
+        ];
+
+        foreach (
+            [
+            'non-array styling' => 'invalid',
+            'missing group header color' => ['cellStyleMapping' => []],
+            'non-array style mapping' => [
+                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'cellStyleMapping' => 'invalid',
+            ],
+            'missing version regex' => [
+                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'cellStyleMapping' => [[]],
+            ],
+            'invalid version regex' => [
+                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'cellStyleMapping' => [['versionRegex' => '/(/']],
+            ],
+            'invalid package name regex' => [
+                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'cellStyleMapping' => [[
+                    'versionRegex' => '/.*/',
+                    'packageNameRegex' => '/(/',
+                ]],
+            ],
+            ] as $description => $stylingConfig
+        ) {
+            $writerConfig = $baseWriterConfig;
+            $writerConfig['styling'] = $stylingConfig;
+
+            try {
+                (new ConfigValidator())->validate(
+                    $appConfig,
+                    $packageConfig,
+                    $writerConfig,
+                    ['repositoryList' => []]
+                );
+                self::fail(sprintf('Expected %s configuration to be rejected.', $description));
+            } catch (InvalidArgumentException $exception) {
+                self::assertStringContainsString('writer.config.styling', $exception->getMessage());
+            }
+        }
     }
 
     public function testValidateGoogleSheetsWriterConfigAcceptsValidConfiguration(): void

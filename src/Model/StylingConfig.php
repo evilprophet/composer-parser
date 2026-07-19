@@ -13,8 +13,8 @@ class StylingConfig implements StylingConfigInterface
 
     public function __construct(array $stylingConfigData)
     {
-        $this->groupHeaderBackgroundColor = (string)$stylingConfigData['groupHeaderBackgroundColor'] ?? '';
-        $this->cellStyleMapping = (array)$stylingConfigData['cellStyleMapping'] ?? [];
+        $this->groupHeaderBackgroundColor = (string) ($stylingConfigData['groupHeaderBackgroundColor'] ?? '');
+        $this->cellStyleMapping = (array) ($stylingConfigData['cellStyleMapping'] ?? []);
     }
 
     public function getGroupHeaderBackgroundColor(): string

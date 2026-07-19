@@ -6,13 +6,14 @@ namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Exception\WriterTypeNotSupportedException;
+use Psr\Container\ContainerInterface;
 
 class WriterManager
 {
     protected string $writerType;
-    protected array $writers;
+    protected ContainerInterface $writers;
 
-    public function __construct(string $writerType, array $writers)
+    public function __construct(string $writerType, ContainerInterface $writers)
     {
         $this->writerType = $writerType;
         $this->writers = $writers;
@@ -20,10 +21,15 @@ class WriterManager
 
     public function getWriter(): WriterInterface
     {
-        if (!key_exists($this->writerType, $this->writers)) {
+        if (!$this->writers->has($this->writerType)) {
             throw new WriterTypeNotSupportedException();
         }
 
-        return $this->writers[$this->writerType];
+        $writer = $this->writers->get($this->writerType);
+        if (!$writer instanceof WriterInterface) {
+            throw new WriterTypeNotSupportedException();
+        }
+
+        return $writer;
     }
 }

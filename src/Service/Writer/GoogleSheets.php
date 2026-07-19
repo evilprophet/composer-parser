@@ -26,7 +26,8 @@ class GoogleSheets implements WriterInterface
         protected StylingConfigInterface $stylingConfig,
         protected ReportFactory $reportFactory,
         protected GoogleSheetsClientInterface $googleSheetsClient
-    ) {}
+    ) {
+    }
 
     public function execute(ParsedDataInterface $parsedData): void
     {

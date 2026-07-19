@@ -44,6 +44,8 @@ services:
   EvilStudio\ComposerParser\Api\GoogleSheetsClientInterface:
     alias: EvilStudio\ComposerParser\Service\Writer\GoogleSheetsClient
 
+  CzProject\GitPhp\Git: ~
+
   EvilStudio\ComposerParser\Service\Provider\GitRepository:
     arguments:
       $appDir: '%app.dir%'
@@ -64,7 +66,7 @@ services:
   EvilStudio\ComposerParser\Service\Provider\ProviderManager:
     arguments:
       $providerType: "@=container.getParameter('app.config')['providerType']"
-      $providers:
+      $providers: !service_locator
         gitRepository: '@EvilStudio\ComposerParser\Service\Provider\GitRepository'
         gitlabApiFiles: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles'
         gitlabApiArchive: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive'
@@ -72,7 +74,7 @@ services:
   EvilStudio\ComposerParser\Service\Parser\ParserManager:
     arguments:
       $parserType: "@=container.getParameter('app.config')['parserType']"
-      $parsers:
+      $parsers: !service_locator
         composerJson: '@EvilStudio\ComposerParser\Service\Parser\ComposerJson'
         composerJsonAndLock: '@EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock'
         composerFull: '@EvilStudio\ComposerParser\Service\Parser\ComposerFull'
@@ -97,11 +99,28 @@ services:
   EvilStudio\ComposerParser\Service\Config\ConfigValidator:
     public: true
 
+  EvilStudio\ComposerParser\Service\Config\RuntimeConfigValidator:
+    arguments:
+      $appConfig: "@=container.getParameter('app.config')"
+      $packageConfig: "@=container.getParameter('package.config')"
+      $writerConfig: "@=container.getParameter('writer.config')"
+      $repositoryConfig: "@=container.getParameter('repository.config')"
+
+  EvilStudio\ComposerParser\Service\Cleaner:
+    arguments:
+      $appDir: '%app.dir%'
+
   EvilStudio\ComposerParser\Command\Run:
     public: true
+    tags: ['console.command']
+    arguments:
+      $runReportFactory: !service_closure '@EvilStudio\ComposerParser\Service\App\RunReport'
 
   EvilStudio\ComposerParser\Command\Cleanup:
     public: true
+    tags: ['console.command']
+    arguments:
+      $cleanupFactory: !service_closure '@EvilStudio\ComposerParser\Service\App\CleanupRepositories'
 
   EvilStudio\ComposerParser\Service\Writer\Xlsx:
     arguments:
@@ -128,7 +147,7 @@ services:
   EvilStudio\ComposerParser\Service\Writer\WriterManager:
     arguments:
       $writerType: "@=container.getParameter('app.config')['writerType']"
-      $writers:
+      $writers: !service_locator
         xlsx: '@EvilStudio\ComposerParser\Service\Writer\Xlsx'
         json: '@EvilStudio\ComposerParser\Service\Writer\Json'
         html: '@EvilStudio\ComposerParser\Service\Writer\Html'

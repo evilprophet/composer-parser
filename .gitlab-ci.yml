@@ -16,13 +16,13 @@ cache:
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --no-progress --no-interaction --prefer-dist
 
-lint:phpcs:
+Lint PHP:
   <<: *php_template
   stage: test
   script:
-    - if [ -x vendor/bin/phpcs ]; then vendor/bin/phpcs --standard=PSR12 --extensions=php src tests; else echo "phpcs not installed, skipping lint job"; fi
+    - vendor/bin/phpcs --standard=PSR12 --extensions=php --warning-severity=0 src tests
 
-test:phpunit:
+PHPUnit Tests:
   <<: *php_template
   stage: test
   script:

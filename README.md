@@ -2,130 +2,180 @@
 
 ## Introduction
 
-Composer Parser is a CLI tool for comparing Composer dependencies across multiple repositories.
-It collects `composer.json` (optionally `composer.lock`), groups packages by configurable rules, and exports a consolidated report.
+Composer Parser is a Symfony Console application for comparing Composer dependencies across multiple repositories and publishing one consolidated report.
+
+It loads repositories through Git or the GitLab API, reads `composer.json` and optionally `composer.lock`, groups packages by configurable rules, and writes the result to XLSX, JSON, HTML, or Google Sheets.
 
 ## ✨ Key Features
 
-- `🔎 Multi-repository parsing`
-    - Reads dependency data from many repositories into one report.
-
-- `🧠 Multiple parser modes`
-    - `composerJson`
-    - `composerJsonAndLock`
-    - `composerFull` (includes latest versions via `composer outdated`)
-
-- `🌐 Multiple providers`
-    - `gitRepository`
-    - `gitlabApiFiles`
-    - `gitlabApiArchive`
-
-- `📤 Multiple output writers`
-    - `xlsx`
-    - `json`
-    - `html`
-    - `googleSheets`
-
-- `🧩 Configurable grouping and styling`
-    - Regex-based package groups
-    - Version-based cell styling (used in XLSX and HTML)
+- **Multiple repository sources**: use a local Git checkout flow or download files and archives through the GitLab API.
+- **Three parser modes**: compare declared constraints, installed versions, or the latest available versions reported by Composer.
+- **Four report formats**: generate XLSX, JSON, HTML, or Google Sheets output from the same normalized data.
+- **Configurable package groups**: match `require`, `require-dev`, `replace`, `patchset`, and explicitly observed packages with regular expressions.
+- **Configurable report styling**: apply version- and package-based colors to XLSX, HTML, and Google Sheets reports.
+- **Complete report snapshots**: repository and parser failures stop the run before the writer replaces the previous complete report.
 
 ## 📁 Project Structure
 
 ```text
 .
-├── bin/             # CLI entrypoint
-├── config/          # Parameters and service configuration
-├── src/             # Application source code
-│   ├── Api/             # Contracts
-│   ├── Command/         # CLI commands
+├── bin/                 # CLI entrypoint
+├── config/              # Parameters template and service configuration
+├── src/                 # Application source code
+│   ├── Api/             # Public contracts
+│   ├── Command/         # Console commands
 │   ├── Exception/       # Domain exceptions
-│   ├── Model/           # Data models
-│   └── Service/         # App use-cases, parsers, providers, writers, config/report/log services
-├── tests/           # Unit and integration tests
-└── var/             # Working data (repositories, results, logs)
+│   ├── Model/           # Configuration and report models
+│   └── Service/         # Providers, parsers, writers, validation, and application services
+├── tests/               # Unit and integration tests
+├── var/                 # Generated repositories, reports, and logs
+├── composer.json        # PHP dependencies and project scripts
+└── phpunit.xml          # PHPUnit suites and strict failure rules
 ```
+
+## 🛠️ Requirements
+
+- PHP `8.4+`
+- Composer `2+`
+- PHP extensions required by the locked dependencies, including `ext-curl`, `ext-gd`, `ext-json`, and `ext-zip`
+- Git available in `PATH` when using `gitRepository`
+- Composer available in `PATH` when using `composerFull`
+- GitLab URL and API token when using a GitLab provider
+- Google Cloud service account JSON when using `googleSheets`
 
 ## 🚀 Quick Start
 
-### 1. Clone and install
+Clone the repository, install dependencies, and create the local parameters file:
 
 ```bash
-git clone https://github.com/evilstudio/composer-parser.git
+git clone https://github.com/evilprophet/composer-parser.git
 cd composer-parser
 composer install
-```
-
-### 2. Prepare configuration
-
-```bash
 cp config/parameters.yaml.template config/parameters.yaml
 ```
 
-Set at least:
+Update `config/parameters.yaml` for your repositories and selected provider, parser, and writer. The template provides the supported values and a complete example configuration.
 
+Run cleanup before every report generation so providers work with fresh repository data:
+
+```bash
+# Remove repositories downloaded by the previous run.
+bin/console app:cleanup
+
+# Download repositories, parse dependencies, and write the report.
+bin/console app:run
+```
+
+Use a different parameters file without changing the default configuration:
+
+```bash
+bin/console app:cleanup -p config/parameters.custom.yaml
+bin/console app:run -p config/parameters.custom.yaml
+```
+
+`-p`, `--parameters-file <path>`, and `--parameters-file=<path>` are equivalent. Relative paths are resolved from the current working directory.
+
+## ⚙️ Configuration
+
+`config/parameters.yaml.template` is the configuration reference. Every report run requires these base keys:
+
+- `app.config.timezone`
 - `app.config.providerType`
 - `app.config.parserType`
-- `app.config.writerType` (`xlsx`, `json`, `html`, `googleSheets`)
+- `app.config.writerType`
+- `package.config.includeInstalledVersion`
+- `package.config.installedVersionDisplayedIn`
+- `package.config.packageGroups`
 - `repository.config.repositoryList`
-- `writer.config.shared.sheetName` (required)
-
-### 3. Run parser
-
-```bash
-bin/console app:run
-bin/console app:run -p config/parameters.custom.yaml #To use custom parameters file
-```
-
-### 4. Cleanup downloaded repositories
-
-```bash
-bin/console app:cleanup
-bin/console app:cleanup -p config/parameters.custom.yaml #To use custom parameters file
-```
-
-## 💻 Commands
-
-| Command       | Description                                                 |
-|---------------|-------------------------------------------------------------|
-| `app:run`     | Fetches data from configured repositories and writes report |
-| `app:cleanup` | Removes downloaded repositories                             |
-
-## ⚙️ Writer Configuration
-
-Common local writer fields:
 - `writer.config.local.fileName`
 - `writer.config.local.fileDirectory`
-- `writer.config.shared.sheetName` (required, used by `xlsx` and `googleSheets`)
+- `writer.config.shared.sheetName`
 
-Google Sheets writer (`writerType: googleSheets`) requires:
-- `writer.config.googleSheets.spreadsheetId`
-- `writer.config.googleSheets.serviceAccountJsonPath`
+**Providers**
 
-## 🌐 Google Sheets Setup
+- `gitRepository` clones the configured remote or reuses an existing checkout, then checks out the configured branch without running `fetch` or `pull`.
+- `gitlabApiFiles` downloads `composer.json` and the optional `composer.lock` directly from GitLab.
+- `gitlabApiArchive` downloads a GitLab repository archive and optionally decrypts `auth.json.encrypted` with `app.config.ansibleVaultPassword`.
 
-1. Create/open a Google Cloud project.
-2. Enable `Google Sheets API` in that project.
-3. Create a Service Account and generate a JSON key.
-4. Share target spreadsheet with the Service Account email as `Editor`.
-5. Set in config:
-  - `app.config.writerType: googleSheets`
-  - `writer.config.shared.sheetName`
-  - `writer.config.googleSheets.spreadsheetId`
-  - `writer.config.googleSheets.serviceAccountJsonPath`
+**Parsers**
+
+- `composerJson` reads `require`, `require-dev`, `replace`, and `extra.patchset` data from `composer.json`.
+- `composerJsonAndLock` also reads installed versions from both `packages` and `packages-dev` in `composer.lock`.
+- `composerFull` additionally runs `composer outdated --no-plugins --no-scripts --format=json` inside each downloaded repository to collect latest available versions.
+
+`composer.lock` is optional. Without it, lock-aware parsers still report declared constraints but cannot add installed or observed package versions.
+
+**Writers**
+
+- `xlsx` writes a styled workbook to `writer.config.local.fileDirectory`.
+- `json` writes a structured local report without styling.
+- `html` writes a standalone styled report.
+- `googleSheets` clears and rewrites the configured sheet through the Google Sheets API.
+
+Styling is required for `xlsx`, `html`, and `googleSheets`. An XLSX sheet name cannot contain `*`, `:`, `/`, `\`, `?`, `[` or `]`.
+
+**Package groups**
+
+- `groupType` accepts `require`, `require-dev`, `replace`, `patchset`, or `observed`.
+- Higher `parserPriority` claims matching `require`, `require-dev`, and `replace` packages first. `observed` and `patchset` entries are added to every matching group.
+- Lower `writerOrder` is displayed first; equal values preserve configuration order.
+- An `observed` group requires `composerJsonAndLock` or `composerFull`, `includeInstalledVersion: true`, and at least one package in `observedPackages`.
+
+**Repository entries**
+
+- Every entry requires `name`, `directory`, `remote`, and `branch`; only `name` and `directory` must be unique.
+- `directory` must be a normalized relative child of `var/repositories/` without `.` or `..` segments or a trailing slash.
+- `remote` must use SCP-style SSH or an HTTP, HTTPS, or SSH URL. GitLab API providers extract the `namespace/project` path from this value.
+- Report columns are sorted alphabetically by repository name, independently of configuration order.
+- Standard dependency and observed package rows are sorted alphabetically; patch rows preserve their source order.
+
+**Google Sheets**
+
+- Enable the Google Sheets API in a Google Cloud project.
+- Create a service account and download its JSON key outside the repository.
+- Share the target spreadsheet with the service account email as `Editor`.
+- Set `writer.config.googleSheets.spreadsheetId` and `writer.config.googleSheets.serviceAccountJsonPath`.
+- Never commit API tokens, vault passwords, or service account files.
+
+## 🔄 Report Flow
+
+1. `app:cleanup` removes only the configured working directories below `var/repositories/`.
+2. The selected provider loads every configured repository into its local working directory.
+3. The selected parser builds one package matrix across all repositories.
+4. The selected writer publishes the report only after every repository has been processed successfully.
+5. A repository, parser, or validation failure returns a non-zero exit code and leaves the previous complete report untouched.
+
+## 💻 Commands Overview
+
+| Command                   | Description                                                        |
+|---------------------------|--------------------------------------------------------------------|
+| `bin/console app:cleanup` | Remove configured local repository working directories.            |
+| `bin/console app:run`     | Load repositories, parse dependencies, and publish one report.     |
+| `bin/console list`        | List available commands without initializing unused integrations.  |
+
+Command exit codes:
+
+- `0` - command completed successfully.
+- `1` - configuration, provider, parser, writer, or cleanup failed at runtime.
+- `2` - CLI bootstrap failed, for example because the parameters file does not exist.
+
+## 🧪 Testing & Quality
+
+Run the complete PHPUnit suite and the same PHP_CodeSniffer rules used by CI:
+
+```bash
+composer test
+vendor/bin/phpcs --standard=PSR12 --extensions=php --warning-severity=0 src tests
+```
+
+GitLab CI runs the `Unit` and `Integration` PHPUnit suites separately on PHP 8.4 and rejects warnings, notices, deprecations, risky tests, and unexpected test output.
 
 ## 🧭 Notes
 
-- Output file path is built from `writer.config.local.fileDirectory` + `fileName`.
-- `{date}` in `fileName` is replaced with current date (`Y-m-d`).
-- Errors are logged to `var/log/error.log`.
-- `composerFull` requires `composer` available in PATH.
-- `gitRepository` provider requires local `git`.
-- `xlsx` output requires PHP extensions `ext-zip` and `ext-gd`.
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-./vendor/bin/phpunit --testdox
-```
+- Local report names use `writer.config.local.fileName`; `{date}` is replaced with the current date in `Y-m-d` format and the writer appends the extension.
+- Relative local output and service account paths are resolved from the current working directory.
+- Local output directories are created automatically, and existing files with the same generated name are overwritten.
+- Runtime errors handled by `app:cleanup` and `app:run` are logged to `var/log/error.log`; bootstrap errors are written directly to STDERR.
+- `app:run` does not perform cleanup automatically; the supported operational sequence is always `app:cleanup` followed by `app:run`.
+- Run cleanup and report generation sequentially. Concurrent executions against the same working directories are not supported.
+- Google Sheets output is updated in place; an API failure during the writer step can leave the target sheet empty or partially updated.

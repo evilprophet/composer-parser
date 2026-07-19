@@ -12,7 +12,8 @@ class RunReport
     public function __construct(
         protected ParserManager $parserManager,
         protected WriterManager $writerManager
-    ) {}
+    ) {
+    }
 
     public function execute(): void
     {

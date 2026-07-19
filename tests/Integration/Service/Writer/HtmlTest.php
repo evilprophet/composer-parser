@@ -76,4 +76,33 @@ class HtmlTest extends TestCase
         $filesystem = new Filesystem();
         $filesystem->remove($directory);
     }
+
+    public function testExecuteThrowsWhenReportCannotBeWritten(): void
+    {
+        $directory = sys_get_temp_dir() . '/composer-parser-html-writer-' . uniqid('', true);
+        $fileName = 'blocked-report';
+        $blockedFilePath = $directory . DIRECTORY_SEPARATOR . $fileName . '.html';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($blockedFilePath);
+
+        $writer = new Html(
+            $fileName,
+            $directory,
+            new PackageConfig(['packageGroups' => []]),
+            new StylingConfig([
+                'groupHeaderBackgroundColor' => '999999',
+                'cellStyleMapping' => [],
+            ]),
+            new ReportFactory(new ReportValidator())
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(sprintf('Unable to write report to "%s".', $blockedFilePath));
+
+        try {
+            $writer->execute(new ParsedData([], []));
+        } finally {
+            $filesystem->remove($directory);
+        }
+    }
 }

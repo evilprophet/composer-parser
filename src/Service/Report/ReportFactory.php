@@ -19,7 +19,7 @@ class ReportFactory
 
         return new Report(
             $parsedData->getProjectNames(),
-            $parsedData->getProjectsData()
+            $parsedData->getGroups()
         );
     }
 }

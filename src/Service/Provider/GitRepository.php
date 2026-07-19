@@ -5,30 +5,32 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Service\Provider;
 
 use CzProject\GitPhp\Git;
-use CzProject\GitPhp\GitException;
 use CzProject\GitPhp\GitRepository as Repository;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 
 class GitRepository extends AbstractProvider
 {
-    protected Git $git;
+    protected const string GIT_METADATA_DIRECTORY = '.git';
+
     protected Repository $gitRepository;
 
-    public function __construct(string $appDir)
+    public function __construct(string $appDir, protected Git $git)
     {
         parent::__construct($appDir);
-
-        $this->git = new Git();
     }
 
     public function load(RepositoryInterface $repository): void
     {
-        $this->localRepositoryDirectory = sprintf(self::LOCAL_REPOSITORY_DIRECTORY_PATH, $this->appDir, $repository->getDirectory());
+        $this->localRepositoryDirectory = $this->resolveLocalRepositoryDirectory($repository);
+        $gitMetadataDirectory = $this->localRepositoryDirectory . DIRECTORY_SEPARATOR . self::GIT_METADATA_DIRECTORY;
 
-        try {
-            $this->gitRepository = $this->git->cloneRepository($repository->getRemote(), $this->localRepositoryDirectory);
-        } catch (GitException $exception) {
+        if (is_dir($gitMetadataDirectory)) {
             $this->gitRepository = $this->git->open($this->localRepositoryDirectory);
+        } else {
+            $this->gitRepository = $this->git->cloneRepository(
+                $repository->getRemote(),
+                $this->localRepositoryDirectory
+            );
         }
 
         $this->gitRepository->checkout($repository->getBranch());

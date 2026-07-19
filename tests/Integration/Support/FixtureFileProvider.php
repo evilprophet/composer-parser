@@ -16,6 +16,6 @@ class FixtureFileProvider extends AbstractProvider
 
     public function load(RepositoryInterface $repository): void
     {
-        $this->localRepositoryDirectory = sprintf('%s/%s', $this->appDir, $repository->getDirectory());
+        $this->localRepositoryDirectory = $this->resolveLocalRepositoryDirectory($repository);
     }
 }

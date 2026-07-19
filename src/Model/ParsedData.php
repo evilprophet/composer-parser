@@ -8,18 +8,18 @@ use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 
 class ParsedData implements ParsedDataInterface
 {
-    protected array $projectData;
+    protected array $groups;
     protected array $projectNames;
 
-    public function __construct(array $projectData, array $projectNames)
+    public function __construct(array $groups, array $projectNames)
     {
-        $this->projectData = $projectData;
+        $this->groups = $groups;
         $this->projectNames = $projectNames;
     }
 
-    public function getProjectsData(): array
+    public function getGroups(): array
     {
-        return $this->projectData;
+        return $this->groups;
     }
 
     public function getProjectNames(): array

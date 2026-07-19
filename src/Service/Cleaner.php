@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Service;
 
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
+use EvilStudio\ComposerParser\Service\Repository\RepositoryDirectoryPath;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Cleaner
 {
-    protected RepositoryListInterface $repositoryList;
-
-    public function __construct(RepositoryListInterface $repositoryList)
-    {
-        $this->repositoryList = $repositoryList;
+    public function __construct(
+        protected RepositoryListInterface $repositoryList,
+        protected string $appDir
+    ) {
     }
 
     public function execute(): void
@@ -21,7 +21,7 @@ class Cleaner
         $filesystem = new Filesystem();
 
         foreach ($this->repositoryList->getList() as $repository) {
-            $filesystem->remove($repository->getDirectory());
+            $filesystem->remove(RepositoryDirectoryPath::resolve($this->appDir, $repository->getDirectory()));
         }
     }
 }

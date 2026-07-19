@@ -11,6 +11,7 @@ use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
 use EvilStudio\ComposerParser\Tests\Integration\Support\FixtureFileProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class ComposerJsonAndLockFileProviderTest extends TestCase
 {
@@ -31,17 +32,19 @@ class ComposerJsonAndLockFileProviderTest extends TestCase
         $repositoryList = new RepositoryList([
             [
                 'name' => 'project-a',
-                'directory' => 'repositories/repo-a',
+                'directory' => 'var/repositories/repo-a',
                 'remote' => 'git@gitlab.example.com:team/repo-a.git',
                 'branch' => 'main',
             ],
         ]);
 
         $provider = new FixtureFileProvider(__DIR__ . '/../../Fixtures');
-        $providerManager = new ProviderManager('fixture', ['fixture' => $provider]);
+        $providerManager = new ProviderManager('fixture', new ServiceLocator([
+            'fixture' => static fn () => $provider,
+        ]));
         $parser = new ComposerJsonAndLock($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
 
-        $data = $parser->execute()->getProjectsData();
+        $data = $parser->execute()->getGroups();
 
         self::assertSame('^1.0', $data['Core']['vendor/a']['project-a']['value']);
         self::assertSame('^9.2', $data['Framework']['vendor/framework']['project-a']['value']);
