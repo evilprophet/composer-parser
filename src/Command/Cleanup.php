@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Command;
 
 use EvilStudio\ComposerParser\Service\App\CleanupRepositories;
+use EvilStudio\ComposerParser\Service\Config\RuntimeConfigValidator;
 use EvilStudio\ComposerParser\Service\Log\ErrorLogger;
+use Closure;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +21,8 @@ use Throwable;
 class Cleanup extends Command
 {
     public function __construct(
-        protected CleanupRepositories $cleanup,
+        protected RuntimeConfigValidator $runtimeConfigValidator,
+        protected Closure $cleanupFactory,
         protected ErrorLogger $errorLogger,
         ?string $name = null
     ) {
@@ -31,7 +34,14 @@ class Cleanup extends Command
         $startedAt = microtime(true);
 
         try {
-            $this->cleanup->execute();
+            $this->runtimeConfigValidator->validateForCleanup();
+
+            $cleanup = ($this->cleanupFactory)();
+            if (!$cleanup instanceof CleanupRepositories) {
+                throw new \LogicException('Cleanup factory must return a CleanupRepositories instance.');
+            }
+
+            $cleanup->execute();
         } catch (Throwable $throwable) {
             $this->errorLogger->logThrowable($throwable);
             $output->writeln('<error>' . $throwable->getMessage() . '</error>');

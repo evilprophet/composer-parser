@@ -59,7 +59,37 @@ class JsonTest extends TestCase
         self::assertSame('^1.0', $payload['groups']['Group B']['vendor/a']['project-a']['value']);
         self::assertSame('Installed version: 1.2.3', $payload['groups']['Group B']['vendor/a']['project-a']['comment']);
 
+        if (PHP_OS_FAMILY !== 'Windows') {
+            clearstatcache(true, $directory);
+            self::assertSame(0, fileperms($directory) & 0022);
+        }
+
         $filesystem = new Filesystem();
         $filesystem->remove($directory);
+    }
+
+    public function testExecuteThrowsWhenReportCannotBeWritten(): void
+    {
+        $directory = sys_get_temp_dir() . '/composer-parser-json-writer-' . uniqid('', true);
+        $fileName = 'blocked-report';
+        $blockedFilePath = $directory . DIRECTORY_SEPARATOR . $fileName . '.json';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($blockedFilePath);
+
+        $writer = new Json(
+            $fileName,
+            $directory,
+            new PackageConfig(['packageGroups' => []]),
+            new ReportFactory(new ReportValidator())
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(sprintf('Unable to write report to "%s".', $blockedFilePath));
+
+        try {
+            $writer->execute(new ParsedData([], []));
+        } finally {
+            $filesystem->remove($directory);
+        }
     }
 }

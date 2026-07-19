@@ -2,7 +2,12 @@
 /config/parameters.yaml
 /config/parameters*.yaml
 
+/.composer-cache/
 /.idea/
+/.phpunit.cache/
+/ai-rules/
+/coverage/
+/tests/results/
 /var/
 /vendor/
-/.phpunit.cache/
+.env

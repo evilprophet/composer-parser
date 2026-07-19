@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Command;
 
 use EvilStudio\ComposerParser\Service\App\RunReport;
+use EvilStudio\ComposerParser\Service\Config\RuntimeConfigValidator;
 use EvilStudio\ComposerParser\Service\Log\ErrorLogger;
+use Closure;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,7 +21,8 @@ use Throwable;
 class Run extends Command
 {
     public function __construct(
-        protected RunReport $runReport,
+        protected RuntimeConfigValidator $runtimeConfigValidator,
+        protected Closure $runReportFactory,
         protected ErrorLogger $errorLogger,
         ?string $name = null
     ) {
@@ -31,7 +34,14 @@ class Run extends Command
         $startedAt = microtime(true);
 
         try {
-            $this->runReport->execute();
+            $this->runtimeConfigValidator->validateForRun();
+
+            $runReport = ($this->runReportFactory)();
+            if (!$runReport instanceof RunReport) {
+                throw new \LogicException('Run report factory must return a RunReport instance.');
+            }
+
+            $runReport->execute();
         } catch (Throwable $throwable) {
             $this->errorLogger->logThrowable($throwable);
             $output->writeln('<error>' . $throwable->getMessage() . '</error>');

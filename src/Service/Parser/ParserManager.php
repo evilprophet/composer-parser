@@ -6,13 +6,14 @@ namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Exception\ParserTypeNotSupportedException;
+use Psr\Container\ContainerInterface;
 
 class ParserManager
 {
     protected string $parserType;
-    protected array $parsers;
+    protected ContainerInterface $parsers;
 
-    public function __construct(string $parserType, array $parsers)
+    public function __construct(string $parserType, ContainerInterface $parsers)
     {
         $this->parserType = $parserType;
         $this->parsers = $parsers;
@@ -20,10 +21,15 @@ class ParserManager
 
     public function getParser(): ParserInterface
     {
-        if (!key_exists($this->parserType, $this->parsers)) {
+        if (!$this->parsers->has($this->parserType)) {
             throw new ParserTypeNotSupportedException();
         }
 
-        return $this->parsers[$this->parserType];
+        $parser = $this->parsers->get($this->parserType);
+        if (!$parser instanceof ParserInterface) {
+            throw new ParserTypeNotSupportedException();
+        }
+
+        return $parser;
     }
 }

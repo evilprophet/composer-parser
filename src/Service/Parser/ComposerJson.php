@@ -10,10 +10,12 @@ use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryListInterface;
 use EvilStudio\ComposerParser\Api\ParserInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
+use EvilStudio\ComposerParser\Exception\RepositoryProcessingException;
 use EvilStudio\ComposerParser\Model\ParsedData;
 use EvilStudio\ComposerParser\Model\RepositoryData;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
-use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
+use Throwable;
+use UnexpectedValueException;
 
 class ComposerJson implements ParserInterface
 {
@@ -24,7 +26,8 @@ class ComposerJson implements ParserInterface
         protected RepositoryListInterface $repositoryList,
         protected ProviderManager $providerManager,
         protected RepositoryDataFactory $repositoryDataFactory
-    ) {}
+    ) {
+    }
 
     public function execute(): ParsedDataInterface
     {
@@ -35,7 +38,11 @@ class ComposerJson implements ParserInterface
         $projectNamesGrouped = array_fill_keys($projectNames, ['value' => '', 'comment' => '']);
 
         foreach ($this->repositoryList->getList() as $repository) {
-            $this->executePerRepository($repository, $provider, $projectNamesGrouped);
+            try {
+                $this->executePerRepository($repository, $provider, $projectNamesGrouped);
+            } catch (Throwable $throwable) {
+                throw new RepositoryProcessingException($repository->getProjectName(), $throwable);
+            }
         }
 
         return new ParsedData($this->parsedData, $projectNames);
@@ -104,8 +111,27 @@ class ComposerJson implements ParserInterface
             $matchedPackagesNames = preg_grep($packageGroup['regex'], array_keys($patchSet));
             foreach ($matchedPackagesNames as $matchedPackageName) {
                 $patches = $patchSet[$matchedPackageName];
+                if (!is_array($patches)) {
+                    throw new UnexpectedValueException(sprintf(
+                        'Invalid patchset for package "%s": patches must be an array.',
+                        $matchedPackageName
+                    ));
+                }
 
-                foreach ($patches as $patch) {
+                foreach ($patches as $patchIndex => $patch) {
+                    if (
+                        !is_array($patch)
+                        || !isset($patch['filename'])
+                        || !is_string($patch['filename'])
+                        || trim($patch['filename']) === ''
+                    ) {
+                        throw new UnexpectedValueException(sprintf(
+                            'Invalid patchset entry for package "%s" at index %s: filename must be a non-empty string.',
+                            $matchedPackageName,
+                            (string) $patchIndex
+                        ));
+                    }
+
                     $versionConstraint = $patch['version-constraint'] ?? '*';
                     $patchName = explode('/', $patch['filename']);
                     $patchName = end($patchName);

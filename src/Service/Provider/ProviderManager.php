@@ -6,14 +6,15 @@ namespace EvilStudio\ComposerParser\Service\Provider;
 
 use EvilStudio\ComposerParser\Api\ProviderInterface;
 use EvilStudio\ComposerParser\Exception\ProviderTypeNotSupportedException;
+use Psr\Container\ContainerInterface;
 
 class ProviderManager
 {
     protected string $providerType;
 
-    protected array $providers;
+    protected ContainerInterface $providers;
 
-    public function __construct(string $providerType, array $providers)
+    public function __construct(string $providerType, ContainerInterface $providers)
     {
         $this->providerType = $providerType;
         $this->providers = $providers;
@@ -21,10 +22,15 @@ class ProviderManager
 
     public function getProvider(): ProviderInterface
     {
-        if (!key_exists($this->providerType, $this->providers)) {
+        if (!$this->providers->has($this->providerType)) {
             throw new ProviderTypeNotSupportedException();
         }
 
-        return $this->providers[$this->providerType];
+        $provider = $this->providers->get($this->providerType);
+        if (!$provider instanceof ProviderInterface) {
+            throw new ProviderTypeNotSupportedException();
+        }
+
+        return $provider;
     }
 }

@@ -35,7 +35,7 @@ class PackageConfig implements PackageConfigInterface
     {
         $parserPackageGroup = $this->packageGroups;
         usort($parserPackageGroup, function ($a, $b) {
-            return $a['parserPriority'] < $b['parserPriority'] ? 1 : -1;
+            return $b['parserPriority'] <=> $a['parserPriority'];
         });
 
         if (empty($groupType)) {
@@ -51,7 +51,7 @@ class PackageConfig implements PackageConfigInterface
     {
         $writerPackageGroup = $this->packageGroups;
         usort($writerPackageGroup, function ($a, $b) {
-            return $a['writerOrder'] > $b['writerOrder'] ? 1 : -1;
+            return $a['writerOrder'] <=> $b['writerOrder'];
         });
 
         return $writerPackageGroup;

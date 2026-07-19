@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace EvilStudio\ComposerParser;
 
-use EvilStudio\ComposerParser\Command\Cleanup;
-use EvilStudio\ComposerParser\Command\Run;
-use EvilStudio\ComposerParser\Service\Config\ConfigValidator;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
 
 class Application extends \Symfony\Component\Console\Application
 {
@@ -20,6 +20,9 @@ class Application extends \Symfony\Component\Console\Application
     ) {
         $containerBuilder = new ContainerBuilder();
         $containerBuilder->setParameter('app.dir', __DIR__ . '/..');
+        foreach (['app.config', 'package.config', 'writer.config', 'repository.config'] as $parameter) {
+            $containerBuilder->setParameter($parameter, []);
+        }
 
         $resolvedParametersFile = $this->resolveParametersFile();
 
@@ -28,28 +31,13 @@ class Application extends \Symfony\Component\Console\Application
 
         $servicesLoader = new YamlFileLoader($containerBuilder, new FileLocator([__DIR__ . '/../config']));
         $servicesLoader->load('services.yaml');
+        $containerBuilder->addCompilerPass(new AddConsoleCommandPass());
 
         $containerBuilder->compile();
 
-        /** @var ConfigValidator $configValidator */
-        $configValidator = $containerBuilder->get(ConfigValidator::class);
-        $configValidator->validate(
-            $containerBuilder->getParameter('app.config'),
-            $containerBuilder->getParameter('package.config'),
-            $containerBuilder->getParameter('writer.config'),
-            $containerBuilder->getParameter('repository.config')
-        );
-        if ($containerBuilder->getParameter('app.config')['writerType'] === 'googleSheets') {
-            $configValidator->validateGoogleSheetsWriterConfig($containerBuilder->getParameter('writer.config'));
-        }
-        $this->applyGlobalTimezone($containerBuilder->getParameter('app.config'));
-
         parent::__construct($name, $version);
 
-        $this->addCommands([
-            $containerBuilder->get(Run::class),
-            $containerBuilder->get(Cleanup::class)
-        ]);
+        $this->setCommandLoader($containerBuilder->get('console.command_loader'));
     }
 
     protected function resolveParametersFile(): string
@@ -72,9 +60,16 @@ class Application extends \Symfony\Component\Console\Application
         return str_starts_with($path, DIRECTORY_SEPARATOR) || (bool)preg_match('/^[A-Za-z]:\\\\/', $path);
     }
 
-    protected function applyGlobalTimezone(array $appConfig): void
+    protected function getDefaultInputDefinition(): InputDefinition
     {
-        $timezone = $appConfig['timezone'] ?? 'UTC';
-        date_default_timezone_set($timezone);
+        $definition = parent::getDefaultInputDefinition();
+        $definition->addOption(new InputOption(
+            '--parameters-file',
+            '-p',
+            InputOption::VALUE_REQUIRED,
+            'Parameters YAML file; relative paths are resolved from the current working directory.'
+        ));
+
+        return $definition;
     }
 }

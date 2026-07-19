@@ -23,7 +23,8 @@ class Json implements WriterInterface
         protected string $fileDirectory,
         protected PackageConfigInterface $packageConfig,
         protected ReportFactory $reportFactory
-    ) {}
+    ) {
+    }
 
     public function execute(ParsedDataInterface $parsedData): void
     {
@@ -44,6 +45,6 @@ class Json implements WriterInterface
             throw new \RuntimeException('Failed to encode report payload to JSON.');
         }
 
-        file_put_contents($this->getFilePath(), $encodedPayload . PHP_EOL);
+        $this->writeLocalFile($encodedPayload . PHP_EOL);
     }
 }

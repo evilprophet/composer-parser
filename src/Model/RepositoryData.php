@@ -9,7 +9,8 @@ class RepositoryData
     public function __construct(
         protected array $composerJson,
         protected array $composerLock = []
-    ) {}
+    ) {
+    }
 
     public function getComposerJson(): array
     {

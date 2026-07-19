@@ -9,7 +9,8 @@ class Report
     public function __construct(
         protected array $projectNames,
         protected array $groups
-    ) {}
+    ) {
+    }
 
     public function getProjectNames(): array
     {

@@ -15,20 +15,10 @@ class ErrorLogger
 
     public function logThrowable(Throwable $throwable): void
     {
-        $message = sprintf(
-            "[%s] %s: %s in %s:%d\n",
-            date('Y-m-d H:i:s'),
+        $this->logger->error(sprintf(
+            '%s: %s',
             $throwable::class,
-            $throwable->getMessage(),
-            $throwable->getFile(),
-            $throwable->getLine()
-        );
-
-        $this->append($message);
-    }
-
-    protected function append(string $message): void
-    {
-        $this->logger->error($message);
+            $throwable->getMessage()
+        ), ['exception' => $throwable]);
     }
 }

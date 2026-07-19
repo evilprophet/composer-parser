@@ -14,7 +14,7 @@ class InMemoryProvider implements ProviderInterface
     /**
      * @param array<string, array{composerJson?: array, composerLock?: array}> $repositoryData
      */
-    public function __construct(protected array $repositoryData)
+    public function __construct(protected array $repositoryData, protected string $localRepositoryDirectory = '')
     {
     }
 
@@ -31,5 +31,10 @@ class InMemoryProvider implements ProviderInterface
     public function getComposerLockContent(): array
     {
         return $this->repositoryData[$this->currentProjectName]['composerLock'] ?? [];
+    }
+
+    public function getLocalRepositoryDirectory(): string
+    {
+        return $this->localRepositoryDirectory;
     }
 }

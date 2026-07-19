@@ -2,6 +2,7 @@
 
 namespace EvilStudio\ComposerParser\Service\Provider\Gitlab;
 
+use Curl\Curl;
 use EvilStudio\ComposerParser\Service\Provider\AbstractProvider;
 
 abstract class AbstractGitlab extends AbstractProvider
@@ -16,5 +17,10 @@ abstract class AbstractGitlab extends AbstractProvider
 
         $this->gitlabUrl = $gitlabUrl;
         $this->gitlabApiToken = $gitlabApiToken;
+    }
+
+    protected function createCurl(): Curl
+    {
+        return new Curl();
     }
 }

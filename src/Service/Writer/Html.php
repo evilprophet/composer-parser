@@ -29,7 +29,8 @@ class Html implements WriterInterface
         protected PackageConfigInterface $packageConfig,
         protected StylingConfigInterface $stylingConfig,
         protected ReportFactory $reportFactory
-    ) {}
+    ) {
+    }
 
     public function execute(ParsedDataInterface $parsedData): void
     {
@@ -114,7 +115,7 @@ class Html implements WriterInterface
 
     protected function writeFile(string $content): void
     {
-        file_put_contents($this->getFilePath(), $content);
+        $this->writeLocalFile($content);
     }
 
     protected function escape(string $value): string

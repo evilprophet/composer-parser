@@ -2,7 +2,7 @@ parameters:
   app.config:
     timezone: Europe/Warsaw
     providerType: gitRepository #Supported: gitRepository, gitlabApiFiles, gitlabApiArchive
-    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull (composerFull works only with gitlabApiArchive)
+    parserType: composerJsonAndLock #Supported: composerJson, composerJsonAndLock, composerFull
     writerType: xlsx #Supported: xlsx, json, html, googleSheets
     gitlab:
       url: https://gitlab.com
@@ -11,20 +11,20 @@ parameters:
 
   package.config:
     #groupType supported values: require, require-dev, replace, observed, patchset
-    #Options not available with parser composerJson
-    includeInstalledVersion: false #Requires composer.lock to add installed versions
+    includeInstalledVersion: true #Used by composerJsonAndLock/composerFull; must be true when using an observed group
     installedVersionDisplayedIn: comment #Supported: comment, value
     #packageGroups processing:
-    # - parserPriority: higher value wins when the same package matches multiple groups during parsing
+    # - parserPriority: higher value claims matching require, require-dev, and replace packages first
+    # - observed and patchset entries may be added to multiple matching groups
     # - writerOrder: lower value is displayed first in the output report
-    # - if writerOrder is equal, current configuration order is preserved
+    # - equal parserPriority or writerOrder values preserve configuration order
     packageGroups:
-      - { name: Group1, parserPriority: 10, writerOrder: 20, groupType: require,  regex: /.*group1.*/}
+      - { name: Group1, parserPriority: 10, writerOrder: 20, groupType: require,  regex: /.*group1.*/ }
       - { name: Group2, parserPriority: 20, writerOrder: 10, groupType: require,  regex: /.*group2.*/ }
       - { name: Group3, parserPriority: 0,  writerOrder: 30, groupType: replace,  regex: /.*/ }
-      - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ } #groupType not available with parser composerJson
-      - { name: Group5, parserPriority: 0,  writerOrder: 40, groupType: patchset, regex: /.*/ } #groupType not available with parser composerJson
-    observedPackages: #Options for groupType observed
+      - { name: Group4, parserPriority: 0,  writerOrder: 40, groupType: observed, regex: /.*/ }
+      - { name: Group5, parserPriority: 0,  writerOrder: 40, groupType: patchset, regex: /.*/ }
+    observedPackages: #Required and non-empty when using an observed group
       - vendor/package_name1
       - vendor/package_name2
 
@@ -33,20 +33,21 @@ parameters:
       fileName: "projects-{date}" #Without file extension, used by writers: xlsx/json/html
       fileDirectory: var/results #Output directory for writers: xlsx/json/html
     shared:
-      sheetName: "Packages in projects" #Used by writers: xlsx/googleSheets
+      sheetName: "Packages in projects" #Used by writers: xlsx/googleSheets; xlsx uses at most 31 characters and forbids * : / \ ? [ ]
     googleSheets:
       spreadsheetId: #Required when writerType=googleSheets
       serviceAccountJsonPath: #Required when writerType=googleSheets, path to service account JSON key file
     styling:
-      groupHeaderBackgroundColor: F2F2F2 #RGB (no #)
+      groupHeaderBackgroundColor: F2F2F2 #RGB (no #), used by writers: xlsx/html/googleSheets
       cellStyleMapping:
-        - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000}
-        - { packageNameRegex: /^package_name1/, versionRegex: /((?!2\.4\.3).)*/, color: FF0000}
+        - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000 }
+        - { packageNameRegex: /^package_name1/, versionRegex: /^(?!2\.4\.3$).+$/, color: FF0000 }
 
   repository.config:
+    # Report columns are sorted alphabetically by repository name.
     repositoryList:
       - name: project1
-        directory: var/repositories/project1
+        directory: var/repositories/project1 # Must be a relative path below var/repositories/
         remote: git@git.com:projects/project1.git
         branch: origin/master #Format for provider: gitRepository
       - name: project2

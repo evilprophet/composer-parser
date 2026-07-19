@@ -11,7 +11,9 @@ use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Model\Report;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
 use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
+use EvilStudio\ComposerParser\Service\Writer\Support\OrdersGroupsByConfig;
 use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesVersionCellStyle;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
@@ -19,6 +21,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxSpreadsheet;
 class Xlsx implements WriterInterface
 {
     use HandlesLocalOutputPath;
+    use OrdersGroupsByConfig;
     use ResolvesVersionCellStyle;
 
     protected const string FILE_EXTENSION = '.xlsx';
@@ -33,7 +36,8 @@ class Xlsx implements WriterInterface
         protected PackageConfigInterface $packageConfig,
         protected StylingConfigInterface $stylingConfig,
         protected ReportFactory $reportFactory
-    ) {}
+    ) {
+    }
 
     public function execute(ParsedDataInterface $parsedData): void
     {
@@ -84,29 +88,23 @@ class Xlsx implements WriterInterface
     protected function prepareData(Report $report): void
     {
         $sheet = $this->spreadsheet->getActiveSheet();
-        $packageGroups = $this->packageConfig->getPackageGroupsForWriter();
-
-        $parsedComposerJson = $report->getGroups();
+        $orderedGroups = $this->getOrderedGroups($report->getGroups());
+        $projectNames = $report->getProjectNames();
 
         $column = 1;
         $row = 2;
-        foreach ($packageGroups as $packageGroup) {
-            if (!array_key_exists($packageGroup['name'], $parsedComposerJson)) {
-                continue;
-            }
-
-            $currentGroup = $parsedComposerJson[$packageGroup['name']];
-
-            $sheet->setCellValue([$column, $row], $packageGroup['name']);
-            $sheet->getStyle([1, $row, 26, $row])->applyFromArray($this->getGroupHeaderStyle());
+        foreach ($orderedGroups as $groupName => $currentGroup) {
+            $sheet->setCellValue([$column, $row], $groupName);
+            $sheet->getStyle([1, $row, count($projectNames) + 1, $row])->applyFromArray($this->getGroupHeaderStyle());
             $row++;
 
             foreach ($currentGroup as $packageName => $packageRow) {
-                $sheet->setCellValue([$column, $row], $packageName);
+                $sheet->setCellValueExplicit([$column, $row], $packageName, DataType::TYPE_STRING);
                 $column++;
 
-                foreach ($packageRow as $projectName => $versionCell) {
-                    $sheet->setCellValue([$column, $row], $versionCell['value']);
+                foreach ($projectNames as $projectName) {
+                    $versionCell = $packageRow[$projectName] ?? ['value' => '', 'comment' => ''];
+                    $sheet->setCellValueExplicit([$column, $row], $versionCell['value'], DataType::TYPE_STRING);
 
                     $style = $this->getPackageVersionCellStyle($versionCell['value'], $packageName);
                     if (!empty($style)) {

@@ -1,8 +1,8 @@
 {
   "name": "evilstudio/composer-parser",
   "type": "project",
-  "description": "Simple app for parse composer.json file from multiple repositories to one Excel spreadsheet",
-  "keywords": ["composer", "parser", "git", "spreadsheet", "Excel", "xlsx", "xls"],
+  "description": "Compare Composer dependencies across repositories and export consolidated reports",
+  "keywords": ["composer", "dependencies", "comparison", "git", "report", "xlsx", "json", "html", "google-sheets"],
   "license": "MIT",
   "authors": [
     {
@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "ext-gd": "*",
     "ext-json": "*",
     "ext-zip": "*",
@@ -30,7 +30,8 @@
     "symfony/yaml": "^7.4"
   },
   "require-dev": {
-    "phpunit/phpunit": "^12.4"
+    "phpunit/phpunit": "^12.4",
+    "squizlabs/php_codesniffer": "^4.0"
   },
   "autoload": {
     "psr-4": {
