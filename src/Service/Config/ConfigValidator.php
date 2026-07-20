@@ -187,7 +187,7 @@ class ConfigValidator
         $stylingConfig = $writerConfig['styling'];
         if (
             !isset($stylingConfig['groupHeaderBackgroundColor'])
-            || trim($stylingConfig['groupHeaderBackgroundColor']) === ''
+            || trim((string)$stylingConfig['groupHeaderBackgroundColor']) === ''
         ) {
             throw new InvalidArgumentException('Invalid config: writer.config.styling.groupHeaderBackgroundColor must be a non-empty string.');
         }
