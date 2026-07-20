@@ -18,6 +18,7 @@ class ConfigValidator
     protected const array STYLED_WRITER_TYPES = ['xlsx', 'html', 'googleSheets'];
     protected const array XLSX_INVALID_SHEET_NAME_CHARACTERS = ['*', ':', '/', '\\', '?', '[', ']'];
     protected const array ALLOWED_INSTALLED_VERSION_DISPLAY = ['value', 'comment'];
+    protected const string HEX_COLOR_REGEX = '/^#[0-9A-Fa-f]{6}$/';
     protected const array ALLOWED_PACKAGE_GROUP_TYPES = [
         PackageConfigInterface::COMPOSER_TYPE_REQUIRE,
         PackageConfigInterface::COMPOSER_TYPE_REQUIRE_DEV,
@@ -187,9 +188,10 @@ class ConfigValidator
         $stylingConfig = $writerConfig['styling'];
         if (
             !isset($stylingConfig['groupHeaderBackgroundColor'])
-            || trim((string)$stylingConfig['groupHeaderBackgroundColor']) === ''
+            || !is_string($stylingConfig['groupHeaderBackgroundColor'])
+            || preg_match(self::HEX_COLOR_REGEX, $stylingConfig['groupHeaderBackgroundColor']) !== 1
         ) {
-            throw new InvalidArgumentException('Invalid config: writer.config.styling.groupHeaderBackgroundColor must be a non-empty string.');
+            throw new InvalidArgumentException('Invalid config: writer.config.styling.groupHeaderBackgroundColor must be a #RRGGBB string.');
         }
 
         if (!isset($stylingConfig['cellStyleMapping']) || !is_array($stylingConfig['cellStyleMapping'])) {
@@ -203,6 +205,8 @@ class ConfigValidator
 
             $this->assertStyleRegex($cellStyle, 'versionRegex', $index, true);
             $this->assertStyleRegex($cellStyle, 'packageNameRegex', $index, false);
+            $this->assertStyleHexColor($cellStyle, 'color', $index);
+            $this->assertStyleHexColor($cellStyle, 'backgroundColor', $index);
         }
     }
 
@@ -223,6 +227,21 @@ class ConfigValidator
         if (!$this->isValidRegex($cellStyle[$field])) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid config: writer.config.styling.cellStyleMapping[%d].%s is not a valid regex.',
+                $index,
+                $field
+            ));
+        }
+    }
+
+    protected function assertStyleHexColor(array $cellStyle, string $field, int $index): void
+    {
+        if (!array_key_exists($field, $cellStyle)) {
+            return;
+        }
+
+        if (!is_string($cellStyle[$field]) || preg_match(self::HEX_COLOR_REGEX, $cellStyle[$field]) !== 1) {
+            throw new InvalidArgumentException(sprintf(
+                'Invalid config: writer.config.styling.cellStyleMapping[%d].%s must be a #RRGGBB string.',
                 $index,
                 $field
             ));

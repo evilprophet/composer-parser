@@ -16,4 +16,25 @@ class StylingConfigTest extends TestCase
         self::assertSame('', $stylingConfig->getGroupHeaderBackgroundColor());
         self::assertSame([], $stylingConfig->getCellStyleMapping());
     }
+
+    public function testNormalizesHashPrefixedColors(): void
+    {
+        $stylingConfig = new StylingConfig([
+            'groupHeaderBackgroundColor' => '#999999',
+            'cellStyleMapping' => [
+                [
+                    'color' => '#FF0000',
+                    'backgroundColor' => '#FFFF00',
+                ],
+            ],
+        ]);
+
+        self::assertSame('999999', $stylingConfig->getGroupHeaderBackgroundColor());
+        self::assertSame([
+            [
+                'color' => 'FF0000',
+                'backgroundColor' => 'FFFF00',
+            ],
+        ], $stylingConfig->getCellStyleMapping());
+    }
 }

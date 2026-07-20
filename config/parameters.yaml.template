@@ -38,10 +38,10 @@ parameters:
       spreadsheetId: #Required when writerType=googleSheets
       serviceAccountJsonPath: #Required when writerType=googleSheets, path to service account JSON key file
     styling:
-      groupHeaderBackgroundColor: F2F2F2 #RGB (no #), used by writers: xlsx/html/googleSheets
+      groupHeaderBackgroundColor: '#F2F2F2' # Quoted #RRGGBB; used by xlsx, html, and googleSheets
       cellStyleMapping:
-        - { versionRegex: /(dev-.*|.*-dev)/, color: FF8000, backgroundColor: FF0000 }
-        - { packageNameRegex: /^package_name1/, versionRegex: /^(?!2\.4\.3$).+$/, color: FF0000 }
+        - { versionRegex: /(dev-.*|.*-dev)/, color: '#FF8000', backgroundColor: '#FF0000' }
+        - { packageNameRegex: /^package_name1/, versionRegex: /^(?!2\.4\.3$).+$/, color: '#FF0000' }
 
   repository.config:
     # Report columns are sorted alphabetically by repository name.

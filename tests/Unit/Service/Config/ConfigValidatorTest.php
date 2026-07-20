@@ -11,12 +11,12 @@ use PHPUnit\Framework\TestCase;
 class ConfigValidatorTest extends TestCase
 {
     protected const array VALID_STYLING_CONFIG = [
-        'groupHeaderBackgroundColor' => 'F2F2F2',
+        'groupHeaderBackgroundColor' => '#F2F2F2',
         'cellStyleMapping' => [
             [
                 'packageNameRegex' => '/^vendor\//',
                 'versionRegex' => '/.*/',
-                'color' => 'FF8000',
+                'color' => '#FF8000',
             ],
         ],
     ];
@@ -487,23 +487,43 @@ class ConfigValidatorTest extends TestCase
             'non-array styling' => 'invalid',
             'missing group header color' => ['cellStyleMapping' => []],
             'non-array style mapping' => [
-                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'groupHeaderBackgroundColor' => '#F2F2F2',
                 'cellStyleMapping' => 'invalid',
             ],
+            'numeric group header color' => [
+                'groupHeaderBackgroundColor' => 999999,
+                'cellStyleMapping' => [],
+            ],
+            'group header color without hash prefix' => [
+                'groupHeaderBackgroundColor' => '999999',
+                'cellStyleMapping' => [],
+            ],
             'missing version regex' => [
-                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'groupHeaderBackgroundColor' => '#F2F2F2',
                 'cellStyleMapping' => [[]],
             ],
             'invalid version regex' => [
-                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'groupHeaderBackgroundColor' => '#F2F2F2',
                 'cellStyleMapping' => [['versionRegex' => '/(/']],
             ],
             'invalid package name regex' => [
-                'groupHeaderBackgroundColor' => 'F2F2F2',
+                'groupHeaderBackgroundColor' => '#F2F2F2',
                 'cellStyleMapping' => [[
                     'versionRegex' => '/.*/',
                     'packageNameRegex' => '/(/',
                 ]],
+            ],
+            'numeric text color' => [
+                'groupHeaderBackgroundColor' => '#F2F2F2',
+                'cellStyleMapping' => [['versionRegex' => '/.*/', 'color' => 999999]],
+            ],
+            'background color without hash prefix' => [
+                'groupHeaderBackgroundColor' => '#F2F2F2',
+                'cellStyleMapping' => [['versionRegex' => '/.*/', 'backgroundColor' => '999999']],
+            ],
+            'invalid hexadecimal color' => [
+                'groupHeaderBackgroundColor' => '#F2F2F2',
+                'cellStyleMapping' => [['versionRegex' => '/.*/', 'color' => '#FFFFFG']],
             ],
             ] as $description => $stylingConfig
         ) {
