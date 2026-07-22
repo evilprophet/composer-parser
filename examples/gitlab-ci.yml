@@ -1,0 +1,42 @@
+spec:
+  inputs:
+    composer_parser_image:
+      description: "Composer Parser image used by the run job."
+      default: "ghcr.io/evilprophet/composer-parser:latest"
+    config_files:
+      description: "Space-separated parameter files below the consumer project's config directory."
+      default: "parameters.project-a.yaml parameters.project-b.yaml"
+---
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: never
+
+stages:
+  - run
+
+Run Composer Parser:
+  stage: run
+  image:
+    name: "$[[ inputs.composer_parser_image ]]"
+    entrypoint: [""]
+  script:
+    - set -eu
+    - umask 077
+    - mkdir -p "$CI_PROJECT_DIR/.composer-parser"
+    - printf '%s' "$GOOGLE_SERVICE_ACCOUNT_JSON_B64" | base64 -d > "$CI_PROJECT_DIR/.composer-parser/google-service-account.json"
+    - export GOOGLE_JSON_PATH="$CI_PROJECT_DIR/.composer-parser/google-service-account.json"
+    - |
+      for cfg in $[[ inputs.config_files ]]; do
+        echo "==> Running for config: $cfg"
+
+        runtime_config="$CI_PROJECT_DIR/.composer-parser/parameters.runtime.yaml"
+        envsubst < "$CI_PROJECT_DIR/config/$cfg" > "$runtime_config"
+
+        composer-parser app:cleanup -p "$runtime_config"
+        composer-parser app:run -p "$runtime_config"
+      done
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'

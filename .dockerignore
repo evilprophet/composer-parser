@@ -1,0 +1,14 @@
+.git
+.github
+.gitignore
+.gitlab-ci.yml
+.idea
+.phpunit.cache
+AGENTS.md
+README.md
+ai-rules
+config/parameters*.yaml
+examples
+tests
+var
+vendor

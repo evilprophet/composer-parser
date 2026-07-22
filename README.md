@@ -19,8 +19,10 @@ It loads repositories through Git or the GitLab API, reads `composer.json` and o
 
 ```text
 .
+├── .github/workflows/   # GitHub Actions workflows
 ├── bin/                 # CLI entrypoint
 ├── config/              # Parameters template and service configuration
+├── examples/            # CI integration examples
 ├── src/                 # Application source code
 │   ├── Api/             # Public contracts
 │   ├── Command/         # Console commands
@@ -30,6 +32,7 @@ It loads repositories through Git or the GitLab API, reads `composer.json` and o
 ├── tests/               # Unit and integration tests
 ├── var/                 # Generated repositories, reports, and logs
 ├── composer.json        # PHP dependencies and project scripts
+├── Dockerfile           # Production CLI image
 └── phpunit.xml          # PHPUnit suites and strict failure rules
 ```
 
@@ -45,35 +48,33 @@ It loads repositories through Git or the GitLab API, reads `composer.json` and o
 
 ## 🚀 Quick Start
 
-Clone the repository, install dependencies, and create the local parameters file:
+Both methods below use `config/parameters.yaml`, created from `config/parameters.yaml.template`. Update it for your repositories and selected provider, parser, and writer. Run `app:cleanup` before every `app:run` so providers work with fresh repository data.
+
+Use `-p <path>`, `--parameters-file <path>`, or `--parameters-file=<path>` to select a different parameters file. Relative paths are resolved from the current working directory.
+
+### Docker
+
+The container reads the mounted parameters file from `/config/parameters.yaml` and persists downloaded repositories, reports, and logs in `/app/var`:
+
+```bash
+cp config/parameters.yaml.template config/parameters.yaml
+mkdir -p var
+docker run --rm --volume "$PWD/config/parameters.yaml:/config/parameters.yaml:ro" --volume "$PWD/var:/app/var" ghcr.io/evilprophet/composer-parser:latest app:cleanup -p /config/parameters.yaml
+docker run --rm --volume "$PWD/config/parameters.yaml:/config/parameters.yaml:ro" --volume "$PWD/var:/app/var" ghcr.io/evilprophet/composer-parser:latest app:run -p /config/parameters.yaml
+```
+
+### Manual
+
+Clone the repository, install dependencies, create the parameters file, and run the application:
 
 ```bash
 git clone https://github.com/evilprophet/composer-parser.git
 cd composer-parser
 composer install
 cp config/parameters.yaml.template config/parameters.yaml
-```
-
-Update `config/parameters.yaml` for your repositories and selected provider, parser, and writer. The template provides the supported values and a complete example configuration.
-
-Run cleanup before every report generation so providers work with fresh repository data:
-
-```bash
-# Remove repositories downloaded by the previous run.
 bin/console app:cleanup
-
-# Download repositories, parse dependencies, and write the report.
 bin/console app:run
 ```
-
-Use a different parameters file without changing the default configuration:
-
-```bash
-bin/console app:cleanup -p config/parameters.custom.yaml
-bin/console app:run -p config/parameters.custom.yaml
-```
-
-`-p`, `--parameters-file <path>`, and `--parameters-file=<path>` are equivalent. Relative paths are resolved from the current working directory.
 
 ## ⚙️ Configuration
 

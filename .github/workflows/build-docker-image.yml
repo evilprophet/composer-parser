@@ -1,0 +1,72 @@
+name: Build Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "x.y.z image tag. Leave empty to reuse the latest Git version tag."
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build_docker_image:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: 2.x
+
+      - name: Resolve Version Tag
+        id: version
+        env:
+          REQUESTED_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+
+          version_tag="$REQUESTED_TAG"
+          if [[ -z "$version_tag" ]]; then
+            while IFS= read -r candidate; do
+              if [[ "$candidate" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+                version_tag="${BASH_REMATCH[1]}"
+                break
+              fi
+            done < <(git tag --list --sort=-version:refname)
+          fi
+
+          if [[ ! "$version_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "No valid x.y.z version tag was provided or found." >&2
+            exit 1
+          fi
+
+          echo "tag=$version_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Log In to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build and Publish Image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
