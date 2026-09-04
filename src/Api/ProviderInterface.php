@@ -19,5 +19,9 @@ interface ProviderInterface
 
     public function getComposerLockContent(): array;
 
+    public function getComposerLockContentForRepository(RepositoryInterface $repository): array;
+
     public function getLocalRepositoryDirectory(): string;
+
+    public function getLocalRepositoryDirectoryForRepository(RepositoryInterface $repository): string;
 }

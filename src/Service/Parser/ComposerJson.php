@@ -54,13 +54,18 @@ class ComposerJson implements ParserInterface
 
         $repositoryData = $this->repositoryDataFactory->create(
             $provider->getComposerJsonContent(),
-            $provider->getComposerLockContent()
+            $this->getComposerLockContentForRepositoryData($provider)
         );
 
         $this->parseComposerJsonFile($repositoryData->getComposerJson(), $projectNamesGrouped, $repository->getProjectName());
         $this->parsePatchSet($repositoryData->getComposerJson(), $projectNamesGrouped, $repository->getProjectName());
 
         return $repositoryData;
+    }
+
+    protected function getComposerLockContentForRepositoryData(ProviderInterface $provider): array
+    {
+        return $provider->getComposerLockContent();
     }
 
     protected function parseComposerJsonFile(array $composerJsonContent, array $projectNamesGrouped, string $projectName): void

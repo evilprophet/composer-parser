@@ -76,8 +76,8 @@ class GoogleSheetsTest extends TestCase
         self::assertSame('vendor/z', $call['values'][4][0]);
         self::assertSame([2, 4], $call['groupRows']);
         self::assertSame('999999', $call['groupHeaderBackgroundColor']);
-        self::assertSame('FF0000', $call['cellStyles'][0]['fontColor']);
-        self::assertSame('FFFF00', $call['cellStyles'][0]['backgroundColor']);
-        self::assertSame('Installed version: 1.2.3', $call['notes'][0]['note']);
+        self::assertSame('FF0000', $call['cellStyles'][0]['stylesByColumn'][2]['fontColor']);
+        self::assertSame('FFFF00', $call['cellStyles'][0]['stylesByColumn'][2]['backgroundColor']);
+        self::assertSame('Installed version: 1.2.3', $call['notes'][0]['notesByColumn'][2]);
     }
 }

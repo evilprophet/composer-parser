@@ -9,7 +9,6 @@ use EvilStudio\ComposerParser\Model\RepositoryList;
 use EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock;
 use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
-use EvilStudio\ComposerParser\Tests\Integration\Support\ComposerJsonAndLockTestDouble;
 use EvilStudio\ComposerParser\Service\Report\ReportValidator;
 use EvilStudio\ComposerParser\Tests\Integration\Support\InMemoryProvider;
 use PHPUnit\Framework\TestCase;
@@ -83,7 +82,7 @@ class ComposerJsonAndLockTest extends TestCase
         self::assertStringContainsString('Installed version: 3.4.5', $parsedData['Require Dev']['vendor/dev-tool']['project-a']['comment']);
     }
 
-    public function testExecuteCollectsOnlyInstalledPackageVersionsForSecondPhase(): void
+    public function testExecuteReadsLocksAfterBuildingPackageMatrixWithoutReloadingRepositories(): void
     {
         $packageConfig = new PackageConfig([
             'includeInstalledVersion' => true,
@@ -128,16 +127,12 @@ class ComposerJsonAndLockTest extends TestCase
         $providerManager = new ProviderManager('test', new ServiceLocator([
             'test' => static fn () => $provider,
         ]));
-        $parser = new ComposerJsonAndLockTestDouble($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
+        $parser = new ComposerJsonAndLock($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
 
         $parser->execute();
 
-        self::assertSame([
-            'project-a' => [
-                'vendor/package' => '1.2.3',
-                'vendor/dev-package' => '4.5.6',
-            ],
-        ], $parser->getCollectedInstalledPackageVersionsByProject());
+        self::assertSame(['project-a'], $provider->getLoadedProjectNames());
+        self::assertSame(['project-a'], $provider->getComposerLockReadProjectNames());
     }
 
     public function testExecuteAddsInstalledVersionForTransitivePackageIndependentlyOfRepositoryOrder(): void

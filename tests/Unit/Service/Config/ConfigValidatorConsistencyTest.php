@@ -186,11 +186,8 @@ class ConfigValidatorConsistencyTest extends TestCase
         self::assertTrue(true);
     }
 
-    protected function validate(
-        array $packageConfig,
-        ?array $repositoryConfig = null,
-        string $parserType = 'composerJson'
-    ): void {
+    protected function validate(array $packageConfig, ?array $repositoryConfig = null, string $parserType = 'composerJson'): void
+    {
         (new ConfigValidator())->validate(
             [
                 'providerType' => 'gitRepository',

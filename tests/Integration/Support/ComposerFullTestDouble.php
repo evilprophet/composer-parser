@@ -10,10 +10,11 @@ use mikehaertl\shellcommand\Command;
 class ComposerFullTestDouble extends ComposerFull
 {
     protected Command $composerOutdatedCommand;
+    protected array $composerOutdatedRepositoryDirectories = [];
 
-    public function getCollectedOutdatedPackageDataByProject(): array
+    public function getComposerOutdatedRepositoryDirectories(): array
     {
-        return $this->outdatedPackageDataByProject;
+        return $this->composerOutdatedRepositoryDirectories;
     }
 
     public function setComposerOutdatedCommand(Command $composerOutdatedCommand): void
@@ -28,6 +29,8 @@ class ComposerFullTestDouble extends ComposerFull
 
     protected function createComposerOutdatedCommand(string $repositoryDirectoryPath): Command
     {
+        $this->composerOutdatedRepositoryDirectories[] = $repositoryDirectoryPath;
+
         return $this->composerOutdatedCommand;
     }
 }

@@ -43,9 +43,21 @@ abstract class AbstractProvider implements ProviderInterface
         return $this->readJsonFile($composerLockFilePath, false);
     }
 
+    public function getComposerLockContentForRepository(RepositoryInterface $repository): array
+    {
+        $composerLockFilePath = sprintf(self::COMPOSER_LOCK_PATH, $this->getLocalRepositoryDirectoryForRepository($repository));
+
+        return $this->readJsonFile($composerLockFilePath, false);
+    }
+
     public function getLocalRepositoryDirectory(): string
     {
         return $this->localRepositoryDirectory;
+    }
+
+    public function getLocalRepositoryDirectoryForRepository(RepositoryInterface $repository): string
+    {
+        return $this->resolveLocalRepositoryDirectory($repository);
     }
 
     protected function readJsonFile(string $filePath, bool $required): array

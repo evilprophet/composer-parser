@@ -5,21 +5,15 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Service\Writer;
 
 use EvilStudio\ComposerParser\Api\GoogleSheetsClientInterface;
+use Google\Service\Sheets;
 
 class GoogleSheetsClient implements GoogleSheetsClientInterface
 {
     protected const int PROJECT_COLUMN_PIXEL_SIZE = 95;
+    protected const int FORMATTING_REQUEST_BATCH_SIZE = 100;
 
-    public function write(
-        string $serviceAccountJsonPath,
-        string $spreadsheetId,
-        string $sheetName,
-        array $values,
-        array $groupRows,
-        string $groupHeaderBackgroundColor,
-        array $cellStyles,
-        array $notes
-    ): void {
+    public function write(string $serviceAccountJsonPath, string $spreadsheetId, string $sheetName, array $values, array $groupRows, string $groupHeaderBackgroundColor, array $cellStyles, array $notes): void
+    {
         if (!class_exists(\Google\Client::class) || !class_exists(\Google\Service\Sheets::class)) {
             throw new \RuntimeException('Google API client is not installed. Run: composer require google/apiclient');
         }
@@ -102,33 +96,53 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
             $gridProperties = $properties->getGridProperties();
 
             return [
-                'sheetId' => (int) $properties->getSheetId(),
-                'rowCount' => max(1, (int) ($gridProperties->getRowCount() ?? 1)),
-                'columnCount' => max(1, (int) ($gridProperties->getColumnCount() ?? 1)),
+                'sheetId' => (int)$properties->getSheetId(),
+                'rowCount' => max(1, (int)($gridProperties->getRowCount() ?? 1)),
+                'columnCount' => max(1, (int)($gridProperties->getColumnCount() ?? 1)),
             ];
         }
 
         return null;
     }
 
-    protected function applyFormatting(
-        \Google\Service\Sheets $service,
-        string $spreadsheetId,
-        int $sheetId,
-        array $values,
-        array $groupRows,
-        string $groupHeaderBackgroundColor,
-        array $cellStyles,
-        array $notes
-    ): void {
+    protected function applyFormatting(Sheets $service, string $spreadsheetId, int $sheetId, array $values, array $groupRows, string $groupHeaderBackgroundColor, array $cellStyles, array $notes): void
+    {
+        foreach ($this->getFormattingRequestBatches($sheetId, $values, $groupRows, $groupHeaderBackgroundColor, $cellStyles, $notes) as $requests) {
+            $service->spreadsheets->batchUpdate(
+                $spreadsheetId,
+                new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest(['requests' => $requests])
+            );
+        }
+    }
+
+    protected function getFormattingRequestBatches(int $sheetId, array $values, array $groupRows, string $groupHeaderBackgroundColor, array $cellStyles, array $notes): \Generator
+    {
+        $requests = [];
+
+        foreach ($this->getFormattingRequests($sheetId, $values, $groupRows, $groupHeaderBackgroundColor, $cellStyles, $notes) as $request) {
+            $requests[] = $request;
+
+            if (count($requests) < self::FORMATTING_REQUEST_BATCH_SIZE) {
+                continue;
+            }
+
+            yield $requests;
+            $requests = [];
+        }
+
+        if ($requests !== []) {
+            yield $requests;
+        }
+    }
+
+    protected function getFormattingRequests(int $sheetId, array $values, array $groupRows, string $groupHeaderBackgroundColor, array $cellStyles, array $notes): \Generator
+    {
         $columnCount = count($values[0] ?? []);
         if ($columnCount === 0) {
             return;
         }
 
-        $requests = [];
-
-        $requests[] = [
+        yield [
             'updateSheetProperties' => [
                 'properties' => [
                     'sheetId' => $sheetId,
@@ -141,7 +155,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
             ],
         ];
 
-        $requests[] = [
+        yield [
             'autoResizeDimensions' => [
                 'dimensions' => [
                     'sheetId' => $sheetId,
@@ -153,7 +167,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
         ];
 
         if ($columnCount > 1) {
-            $requests[] = [
+            yield [
                 'updateDimensionProperties' => [
                     'range' => [
                         'sheetId' => $sheetId,
@@ -169,7 +183,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
             ];
         }
 
-        $requests[] = [
+        yield [
             'repeatCell' => [
                 'range' => [
                     'sheetId' => $sheetId,
@@ -190,7 +204,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
             ],
         ];
 
-        $requests[] = [
+        yield [
             'repeatCell' => [
                 'range' => [
                     'sheetId' => $sheetId,
@@ -209,7 +223,7 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
         ];
 
         foreach ($groupRows as $groupRow) {
-            $requests[] = [
+            yield [
                 'repeatCell' => [
                     'range' => [
                         'sheetId' => $sheetId,
@@ -231,80 +245,155 @@ class GoogleSheetsClient implements GoogleSheetsClientInterface
             ];
         }
 
-        foreach ($cellStyles as $cellStyle) {
-            $cellFormat = [];
-            $fields = [];
-
-            if (isset($cellStyle['fontColor'])) {
-                $cellFormat['textFormat']['foregroundColor'] = $this->hexToColor($cellStyle['fontColor']);
-                $fields[] = 'userEnteredFormat.textFormat.foregroundColor';
-            }
-
-            if (isset($cellStyle['backgroundColor'])) {
-                $cellFormat['backgroundColor'] = $this->hexToColor($cellStyle['backgroundColor']);
-                $fields[] = 'userEnteredFormat.backgroundColor';
-            }
-
-            if ($fields === []) {
-                continue;
-            }
-
-            $requests[] = [
-                'repeatCell' => [
-                    'range' => [
-                        'sheetId' => $sheetId,
-                        'startRowIndex' => $cellStyle['row'] - 1,
-                        'endRowIndex' => $cellStyle['row'],
-                        'startColumnIndex' => $cellStyle['column'] - 1,
-                        'endColumnIndex' => $cellStyle['column'],
-                    ],
-                    'cell' => [
-                        'userEnteredFormat' => $cellFormat,
-                    ],
-                    'fields' => implode(',', $fields),
-                ],
-            ];
+        foreach ($this->getCellStyleRequests($sheetId, $cellStyles) as $request) {
+            yield $request;
         }
 
-        foreach ($notes as $note) {
-            $requests[] = [
-                'updateCells' => [
-                    'range' => [
-                        'sheetId' => $sheetId,
-                        'startRowIndex' => $note['row'] - 1,
-                        'endRowIndex' => $note['row'],
-                        'startColumnIndex' => $note['column'] - 1,
-                        'endColumnIndex' => $note['column'],
-                    ],
-                    'rows' => [
-                        [
-                            'values' => [
-                                [
-                                    'note' => $note['note'],
-                                ],
-                            ],
-                        ],
-                    ],
-                    'fields' => 'note',
-                ],
-            ];
-        }
-
-        if ($requests !== []) {
-            $service->spreadsheets->batchUpdate(
-                $spreadsheetId,
-                new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest(['requests' => $requests])
-            );
+        foreach ($this->getNoteUpdateRequests($sheetId, $notes) as $request) {
+            yield $request;
         }
     }
 
-    protected function clearSheetFormattingAndNotes(
-        \Google\Service\Sheets $service,
-        string $spreadsheetId,
-        int $sheetId,
-        int $rowCount,
-        int $columnCount
-    ): void {
+    protected function getCellStyleRequests(int $sheetId, array $cellStyles): \Generator
+    {
+        foreach ($cellStyles as $cellStyleRow) {
+            $row = (int)$cellStyleRow['row'];
+            $stylesByColumn = $cellStyleRow['stylesByColumn'];
+            ksort($stylesByColumn);
+
+            $rangeStartColumn = null;
+            $rangeEndColumn = null;
+            $styleForRange = null;
+
+            foreach ($stylesByColumn as $column => $cellStyle) {
+                $column = (int)$column;
+
+                if ($rangeStartColumn !== null && $column === $rangeEndColumn + 1 && $cellStyle === $styleForRange) {
+                    $rangeEndColumn = $column;
+                    continue;
+                }
+
+                if ($rangeStartColumn !== null) {
+                    $request = $this->createCellStyleRequest($sheetId, $row, $rangeStartColumn, $rangeEndColumn, $styleForRange);
+                    if ($request !== null) {
+                        yield $request;
+                    }
+                }
+
+                $rangeStartColumn = $column;
+                $rangeEndColumn = $column;
+                $styleForRange = $cellStyle;
+            }
+
+            if ($rangeStartColumn === null) {
+                continue;
+            }
+
+            $request = $this->createCellStyleRequest($sheetId, $row, $rangeStartColumn, $rangeEndColumn, $styleForRange);
+            if ($request !== null) {
+                yield $request;
+            }
+        }
+    }
+
+    protected function createCellStyleRequest(int $sheetId, int $row, int $startColumn, int $endColumn, array $cellStyle): ?array
+    {
+        $cellFormat = [];
+        $fields = [];
+
+        if (isset($cellStyle['fontColor'])) {
+            $cellFormat['textFormat']['foregroundColor'] = $this->hexToColor($cellStyle['fontColor']);
+            $fields[] = 'userEnteredFormat.textFormat.foregroundColor';
+        }
+
+        if (isset($cellStyle['backgroundColor'])) {
+            $cellFormat['backgroundColor'] = $this->hexToColor($cellStyle['backgroundColor']);
+            $fields[] = 'userEnteredFormat.backgroundColor';
+        }
+
+        if ($fields === []) {
+            return null;
+        }
+
+        return [
+            'repeatCell' => [
+                'range' => [
+                    'sheetId' => $sheetId,
+                    'startRowIndex' => $row - 1,
+                    'endRowIndex' => $row,
+                    'startColumnIndex' => $startColumn - 1,
+                    'endColumnIndex' => $endColumn,
+                ],
+                'cell' => [
+                    'userEnteredFormat' => $cellFormat,
+                ],
+                'fields' => implode(',', $fields),
+            ],
+        ];
+    }
+
+    protected function getNoteUpdateRequests(int $sheetId, array $notes): \Generator
+    {
+        foreach ($notes as $noteRow) {
+            $row = (int)$noteRow['row'];
+            $notesByColumn = $noteRow['notesByColumn'];
+            ksort($notesByColumn);
+
+            $rangeStartColumn = null;
+            $previousColumn = null;
+            $notesForRange = [];
+
+            foreach ($notesByColumn as $column => $note) {
+                $column = (int)$column;
+
+                if ($rangeStartColumn !== null && $column !== $previousColumn + 1) {
+                    yield $this->createNoteUpdateRequest($sheetId, $row, $rangeStartColumn, $notesForRange);
+                    $rangeStartColumn = null;
+                    $notesForRange = [];
+                }
+
+                if ($rangeStartColumn === null) {
+                    $rangeStartColumn = $column;
+                }
+
+                $notesForRange[] = $note;
+                $previousColumn = $column;
+            }
+
+            if ($rangeStartColumn !== null) {
+                yield $this->createNoteUpdateRequest($sheetId, $row, $rangeStartColumn, $notesForRange);
+            }
+        }
+    }
+
+    protected function createNoteUpdateRequest(int $sheetId, int $row, int $startColumn, array $notes): array
+    {
+        $values = [];
+        foreach ($notes as $note) {
+            $values[] = ['note' => $note];
+        }
+
+        return [
+            'updateCells' => [
+                'range' => [
+                    'sheetId' => $sheetId,
+                    'startRowIndex' => $row - 1,
+                    'endRowIndex' => $row,
+                    'startColumnIndex' => $startColumn - 1,
+                    'endColumnIndex' => $startColumn - 1 + count($values),
+                ],
+                'rows' => [
+                    [
+                        'values' => $values,
+                    ],
+                ],
+                'fields' => 'note',
+            ],
+        ];
+    }
+
+    protected function clearSheetFormattingAndNotes(\Google\Service\Sheets $service, string $spreadsheetId, int $sheetId, int $rowCount, int $columnCount): void
+    {
         $fullSheetRange = [
             'sheetId' => $sheetId,
             'startRowIndex' => 0,

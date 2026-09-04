@@ -50,6 +50,8 @@ class GoogleSheets implements WriterInterface
 
             foreach ($packages as $packageName => $packageRow) {
                 $rowValues = [$packageName];
+                $rowCellStyles = [];
+                $rowNotesByColumn = [];
                 $column = 2;
 
                 foreach ($projects as $projectName) {
@@ -61,26 +63,35 @@ class GoogleSheets implements WriterInterface
 
                     $style = $this->getPackageVersionCellStyle($value, (string) $packageName);
                     if (isset($style['font']['color']['rgb']) || isset($style['fill']['startColor']['rgb'])) {
-                        $cellStyles[] = [
-                            'row' => $row,
-                            'column' => $column,
+                        $rowCellStyles[$column] = [
                             'fontColor' => $style['font']['color']['rgb'] ?? null,
                             'backgroundColor' => $style['fill']['startColor']['rgb'] ?? null,
                         ];
                     }
 
                     if ($comment !== '') {
-                        $notes[] = [
-                            'row' => $row,
-                            'column' => $column,
-                            'note' => $comment,
-                        ];
+                        $rowNotesByColumn[$column] = $comment;
                     }
 
                     $column++;
                 }
 
                 $values[] = $rowValues;
+
+                if ($rowCellStyles !== []) {
+                    $cellStyles[] = [
+                        'row' => $row,
+                        'stylesByColumn' => $rowCellStyles,
+                    ];
+                }
+
+                if ($rowNotesByColumn !== []) {
+                    $notes[] = [
+                        'row' => $row,
+                        'notesByColumn' => $rowNotesByColumn,
+                    ];
+                }
+
                 $row++;
             }
         }

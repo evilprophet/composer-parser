@@ -6,11 +6,8 @@ namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
 use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
-use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
-use EvilStudio\ComposerParser\Api\ProviderInterface;
 use EvilStudio\ComposerParser\Exception\RepositoryProcessingException;
 use EvilStudio\ComposerParser\Model\ParsedData;
-use EvilStudio\ComposerParser\Model\RepositoryData;
 use JsonException;
 use mikehaertl\shellcommand\Command;
 use RuntimeException;
@@ -23,36 +20,33 @@ class ComposerFull extends ComposerJsonAndLock
     protected const string COMMAND_EXECUTION_ERROR = 'Unable to inspect outdated packages in "%s": %s';
     protected const string INVALID_COMMAND_OUTPUT_ERROR = 'Composer returned invalid outdated package data for "%s": %s';
 
-    protected array $outdatedPackageDataByProject = [];
-
     public function execute(): ParsedDataInterface
     {
-        $this->outdatedPackageDataByProject = [];
         $parsedData = parent::execute();
+        $projectNames = $parsedData->getProjectNames();
+        unset($parsedData);
 
-        $this->addCollectedLatestAvailableVersions();
+        $this->addLatestAvailableVersionsForRepositories();
 
-        return new ParsedData($this->parsedData, $parsedData->getProjectNames());
+        return new ParsedData($this->parsedData, $projectNames);
     }
 
-    protected function addCollectedLatestAvailableVersions(): void
+    protected function addLatestAvailableVersionsForRepositories(): void
     {
-        foreach ($this->outdatedPackageDataByProject as $projectName => $outdatedPackageDataByName) {
+        $provider = $this->providerManager->getProvider();
+        foreach ($this->repositoryList->getList() as $repository) {
+            $projectName = $repository->getProjectName();
+
             try {
+                $repositoryDirectoryPath = $provider->getLocalRepositoryDirectoryForRepository($repository);
+                $outdatedPackageDataByName = $this->getOutdatedPackageDataByName($repositoryDirectoryPath);
                 $this->addLatestAvailableVersions($outdatedPackageDataByName, $projectName);
             } catch (Throwable $throwable) {
                 throw new RepositoryProcessingException($projectName, $throwable);
+            } finally {
+                unset($outdatedPackageDataByName);
             }
         }
-    }
-
-    protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): RepositoryData
-    {
-        $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
-
-        $this->outdatedPackageDataByProject[$repository->getProjectName()] = $this->getOutdatedPackageDataByName($provider->getLocalRepositoryDirectory());
-
-        return $repositoryData;
     }
 
     protected function getOutdatedPackageDataByName(string $repositoryDirectoryPath): array

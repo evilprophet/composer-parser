@@ -10,6 +10,8 @@ use EvilStudio\ComposerParser\Api\ProviderInterface;
 class InMemoryProvider implements ProviderInterface
 {
     protected string $currentProjectName = '';
+    protected array $loadedProjectNames = [];
+    protected array $composerLockReadProjectNames = [];
 
     /**
      * @param array<string, array{composerJson?: array, composerLock?: array}> $repositoryData
@@ -21,6 +23,7 @@ class InMemoryProvider implements ProviderInterface
     public function load(RepositoryInterface $repository): void
     {
         $this->currentProjectName = $repository->getProjectName();
+        $this->loadedProjectNames[] = $this->currentProjectName;
     }
 
     public function getComposerJsonContent(): array
@@ -33,8 +36,31 @@ class InMemoryProvider implements ProviderInterface
         return $this->repositoryData[$this->currentProjectName]['composerLock'] ?? [];
     }
 
+    public function getComposerLockContentForRepository(RepositoryInterface $repository): array
+    {
+        $projectName = $repository->getProjectName();
+        $this->composerLockReadProjectNames[] = $projectName;
+
+        return $this->repositoryData[$projectName]['composerLock'] ?? [];
+    }
+
     public function getLocalRepositoryDirectory(): string
     {
         return $this->localRepositoryDirectory;
+    }
+
+    public function getLocalRepositoryDirectoryForRepository(RepositoryInterface $repository): string
+    {
+        return $this->localRepositoryDirectory;
+    }
+
+    public function getLoadedProjectNames(): array
+    {
+        return $this->loadedProjectNames;
+    }
+
+    public function getComposerLockReadProjectNames(): array
+    {
+        return $this->composerLockReadProjectNames;
     }
 }
