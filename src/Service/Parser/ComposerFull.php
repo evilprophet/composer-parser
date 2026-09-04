@@ -23,11 +23,11 @@ class ComposerFull extends ComposerJsonAndLock
     protected const string COMMAND_EXECUTION_ERROR = 'Unable to inspect outdated packages in "%s": %s';
     protected const string INVALID_COMMAND_OUTPUT_ERROR = 'Composer returned invalid outdated package data for "%s": %s';
 
-    protected array $outdatedPackagesByProject = [];
+    protected array $outdatedPackageDataByProject = [];
 
     public function execute(): ParsedDataInterface
     {
-        $this->outdatedPackagesByProject = [];
+        $this->outdatedPackageDataByProject = [];
         $parsedData = parent::execute();
 
         $this->addCollectedLatestAvailableVersions();
@@ -37,9 +37,9 @@ class ComposerFull extends ComposerJsonAndLock
 
     protected function addCollectedLatestAvailableVersions(): void
     {
-        foreach ($this->outdatedPackagesByProject as $projectName => $outdatedPackagesByName) {
+        foreach ($this->outdatedPackageDataByProject as $projectName => $outdatedPackageDataByName) {
             try {
-                $this->addLatestAvailableVersions($outdatedPackagesByName, $projectName);
+                $this->addLatestAvailableVersions($outdatedPackageDataByName, $projectName);
             } catch (Throwable $throwable) {
                 throw new RepositoryProcessingException($projectName, $throwable);
             }
@@ -50,12 +50,12 @@ class ComposerFull extends ComposerJsonAndLock
     {
         $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
-        $this->outdatedPackagesByProject[$repository->getProjectName()] = $this->getOutdatedPackagesByName($provider->getLocalRepositoryDirectory());
+        $this->outdatedPackageDataByProject[$repository->getProjectName()] = $this->getOutdatedPackageDataByName($provider->getLocalRepositoryDirectory());
 
         return $repositoryData;
     }
 
-    protected function getOutdatedPackagesByName(string $repositoryDirectoryPath): array
+    protected function getOutdatedPackageDataByName(string $repositoryDirectoryPath): array
     {
         $command = $this->createComposerOutdatedCommand($repositoryDirectoryPath);
         if (!$command->execute()) {
@@ -86,10 +86,19 @@ class ComposerFull extends ComposerJsonAndLock
 
         $this->validateOutdatedPackages($outdatedPackages['installed'], $repositoryDirectoryPath);
 
-        return $this->indexPackagesByName($outdatedPackages['installed']);
+        $outdatedPackageDataByName = [];
+        foreach ($outdatedPackages['installed'] as $outdatedPackage) {
+            $outdatedPackageDataByName[$outdatedPackage['name']] = [
+                'version' => $outdatedPackage['version'],
+                'latest' => $outdatedPackage['latest'],
+                'latest-status' => $outdatedPackage['latest-status'],
+            ];
+        }
+
+        return $outdatedPackageDataByName;
     }
 
-    protected function addLatestAvailableVersions(array $outdatedPackagesByName, string $projectName): void
+    protected function addLatestAvailableVersions(array $outdatedPackageDataByName, string $projectName): void
     {
         $skippedPackageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE);
         $skippedPackageGroupsByName = array_fill_keys(array_column($skippedPackageGroups, 'name'), true);
@@ -99,11 +108,11 @@ class ComposerFull extends ComposerJsonAndLock
             }
 
             foreach ($packageGroup as $packageName => $packageRow) {
-                if (!isset($outdatedPackagesByName[$packageName])) {
+                if (!isset($outdatedPackageDataByName[$packageName])) {
                     continue;
                 }
 
-                $outdatedPackage = $outdatedPackagesByName[$packageName];
+                $outdatedPackage = $outdatedPackageDataByName[$packageName];
                 if ($outdatedPackage['latest-status'] == 'up-to-date' || $outdatedPackage['latest'] == $outdatedPackage['version']) {
                     continue;
                 }

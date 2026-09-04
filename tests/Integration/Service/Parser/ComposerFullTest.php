@@ -48,6 +48,32 @@ class ComposerFullTest extends TestCase
         self::assertStringContainsString("Latest version: 1.4.0\n", $comment);
     }
 
+    public function testExecuteCollectsOnlyFieldsNeededForLatestVersionComments(): void
+    {
+        $parser = $this->parser($this->successfulCommand([
+            [
+                'name' => 'vendor/package',
+                'version' => '1.2.3',
+                'latest' => '1.4.0',
+                'latest-status' => 'semver-safe-update',
+                'description' => 'This metadata must not remain in the second-phase cache.',
+                'source' => ['url' => 'https://example.com/vendor/package.git'],
+            ],
+        ]));
+
+        $parser->execute();
+
+        self::assertSame([
+            'project-a' => [
+                'vendor/package' => [
+                    'version' => '1.2.3',
+                    'latest' => '1.4.0',
+                    'latest-status' => 'semver-safe-update',
+                ],
+            ],
+        ], $parser->getCollectedOutdatedPackageDataByProject());
+    }
+
     public function testExecuteAddsLatestAvailableVersionForTransitivePackageIndependentlyOfRepositoryOrder(): void
     {
         $projectA = [

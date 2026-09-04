@@ -19,11 +19,11 @@ class ComposerJsonAndLock extends ComposerJson
     protected const string LOCK_PACKAGES_KEY = 'packages';
     protected const string LOCK_PACKAGES_DEV_KEY = 'packages-dev';
 
-    protected array $installedPackagesByProject = [];
+    protected array $installedPackageVersionsByProject = [];
 
     public function execute(): ParsedDataInterface
     {
-        $this->installedPackagesByProject = [];
+        $this->installedPackageVersionsByProject = [];
         $parsedData = parent::execute();
 
         $this->addCollectedInstalledPackageVersions();
@@ -33,10 +33,10 @@ class ComposerJsonAndLock extends ComposerJson
 
     protected function addCollectedInstalledPackageVersions(): void
     {
-        foreach ($this->installedPackagesByProject as $projectName => $installedPackagesByName) {
+        foreach ($this->installedPackageVersionsByProject as $projectName => $installedPackageVersionsByName) {
             try {
-                $this->addInstalledPackageVersions($installedPackagesByName, $projectName);
-                $this->addObservedPackageVersions($installedPackagesByName, $projectName);
+                $this->addInstalledPackageVersions($installedPackageVersionsByName, $projectName);
+                $this->addObservedPackageVersions($installedPackageVersionsByName, $projectName);
             } catch (Throwable $throwable) {
                 throw new RepositoryProcessingException($projectName, $throwable);
             }
@@ -48,13 +48,13 @@ class ComposerJsonAndLock extends ComposerJson
         $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
         if ($this->packageConfig->includeInstalledVersion() && !empty($repositoryData->getComposerLock())) {
-            $this->installedPackagesByProject[$repository->getProjectName()] = $this->getInstalledPackagesByName($repositoryData->getComposerLock());
+            $this->installedPackageVersionsByProject[$repository->getProjectName()] = $this->getInstalledPackageVersionsByName($repositoryData->getComposerLock());
         }
 
         return $repositoryData;
     }
 
-    protected function addInstalledPackageVersions(array $installedPackagesByName, string $projectName): void
+    protected function addInstalledPackageVersions(array $installedPackageVersionsByName, string $projectName): void
     {
         $skippedPackageGroups = array_merge(
             $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_REPLACE),
@@ -63,7 +63,7 @@ class ComposerJsonAndLock extends ComposerJson
         );
         $skippedPackageGroupsByName = array_fill_keys(array_column($skippedPackageGroups, 'name'), true);
 
-        if ($installedPackagesByName === []) {
+        if ($installedPackageVersionsByName === []) {
             return;
         }
 
@@ -73,21 +73,21 @@ class ComposerJsonAndLock extends ComposerJson
             }
 
             foreach ($packageGroup as $packageName => $packageRow) {
-                if (!isset($installedPackagesByName[$packageName])) {
+                if (!isset($installedPackageVersionsByName[$packageName])) {
                     continue;
                 }
 
-                $packageInstalled = $installedPackagesByName[$packageName];
-                if ($packageInstalled['version'] == $this->parsedData[$packageGroupName][$packageName][$projectName]['value']) {
+                $installedVersion = $installedPackageVersionsByName[$packageName];
+                if ($installedVersion == $this->parsedData[$packageGroupName][$packageName][$projectName]['value']) {
                     continue;
                 }
 
-                $this->addInstalledVersion($packageGroupName, $packageName, $projectName, $packageInstalled['version']);
+                $this->addInstalledVersion($packageGroupName, $packageName, $projectName, $installedVersion);
             }
         }
     }
 
-    protected function addObservedPackageVersions(array $installedPackagesByName, string $projectName): void
+    protected function addObservedPackageVersions(array $installedPackageVersionsByName, string $projectName): void
     {
         $packageGroups = $this->packageConfig->getPackageGroupsForParser(PackageConfigInterface::COMPOSER_TYPE_OBSERVED);
         $observedPackages = $this->packageConfig->getObservedPackages();
@@ -97,13 +97,13 @@ class ComposerJsonAndLock extends ComposerJson
             $matchedPackagesNames = preg_grep($packageGroup['regex'], $observedPackages);
 
             foreach ($matchedPackagesNames as $matchedPackageName) {
-                if (!isset($installedPackagesByName[$matchedPackageName])) {
+                if (!isset($installedPackageVersionsByName[$matchedPackageName])) {
                     continue;
                 }
 
-                $packageInstalled = $installedPackagesByName[$matchedPackageName];
+                $installedVersion = $installedPackageVersionsByName[$matchedPackageName];
                 $this->parsedData[$packageGroupName][$matchedPackageName][$projectName] = ['value' => '', 'comment' => ''];
-                $this->addInstalledVersion($packageGroupName, $matchedPackageName, $projectName, $packageInstalled['version']);
+                $this->addInstalledVersion($packageGroupName, $matchedPackageName, $projectName, $installedVersion);
             }
         }
     }
@@ -121,18 +121,16 @@ class ComposerJsonAndLock extends ComposerJson
         }
     }
 
-    protected function getInstalledPackagesByName(array $composerLockContent): array
+    protected function getInstalledPackageVersionsByName(array $composerLockContent): array
     {
-        $installedPackages = array_merge(
-            $composerLockContent[self::LOCK_PACKAGES_KEY] ?? [],
-            $composerLockContent[self::LOCK_PACKAGES_DEV_KEY] ?? []
-        );
+        $installedPackageVersionsByName = [];
 
-        return $this->indexPackagesByName($installedPackages);
-    }
+        foreach ([self::LOCK_PACKAGES_KEY, self::LOCK_PACKAGES_DEV_KEY] as $packageListKey) {
+            foreach ($composerLockContent[$packageListKey] ?? [] as $installedPackage) {
+                $installedPackageVersionsByName[$installedPackage['name']] = $installedPackage['version'];
+            }
+        }
 
-    protected function indexPackagesByName(array $packages): array
-    {
-        return array_column($packages, null, 'name');
+        return $installedPackageVersionsByName;
     }
 }

@@ -9,6 +9,7 @@ use EvilStudio\ComposerParser\Model\RepositoryList;
 use EvilStudio\ComposerParser\Service\Parser\ComposerJsonAndLock;
 use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
+use EvilStudio\ComposerParser\Tests\Integration\Support\ComposerJsonAndLockTestDouble;
 use EvilStudio\ComposerParser\Service\Report\ReportValidator;
 use EvilStudio\ComposerParser\Tests\Integration\Support\InMemoryProvider;
 use PHPUnit\Framework\TestCase;
@@ -80,6 +81,63 @@ class ComposerJsonAndLockTest extends TestCase
         self::assertStringContainsString('Installed version: 7.8.2', $parsedData['Other']['vendor/http']['project-a']['comment']);
         self::assertStringContainsString('Installed version: 2.0.0', $parsedData['Other']['vendor/log']['project-a']['comment']);
         self::assertStringContainsString('Installed version: 3.4.5', $parsedData['Require Dev']['vendor/dev-tool']['project-a']['comment']);
+    }
+
+    public function testExecuteCollectsOnlyInstalledPackageVersionsForSecondPhase(): void
+    {
+        $packageConfig = new PackageConfig([
+            'includeInstalledVersion' => true,
+            'installedVersionDisplayedIn' => 'comment',
+            'packageGroups' => [
+                ['name' => 'Packages', 'parserPriority' => 0, 'writerOrder' => 0, 'groupType' => 'require', 'regex' => '/.*/'],
+            ],
+            'observedPackages' => [],
+        ]);
+        $repositoryList = new RepositoryList([
+            [
+                'name' => 'project-a',
+                'directory' => 'var/repositories/project-a',
+                'remote' => 'git@gitlab.example.com:team/project-a.git',
+                'branch' => 'main',
+            ],
+        ]);
+        $provider = new InMemoryProvider([
+            'project-a' => [
+                'composerJson' => [
+                    'require' => ['vendor/package' => '^1.0'],
+                ],
+                'composerLock' => [
+                    'packages' => [
+                        [
+                            'name' => 'vendor/package',
+                            'version' => '1.2.3',
+                            'description' => 'This metadata must not remain in the second-phase cache.',
+                            'extra' => ['metadata' => 'unused'],
+                        ],
+                    ],
+                    'packages-dev' => [
+                        [
+                            'name' => 'vendor/dev-package',
+                            'version' => '4.5.6',
+                            'source' => ['url' => 'https://example.com/vendor/dev-package.git'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $providerManager = new ProviderManager('test', new ServiceLocator([
+            'test' => static fn () => $provider,
+        ]));
+        $parser = new ComposerJsonAndLockTestDouble($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
+
+        $parser->execute();
+
+        self::assertSame([
+            'project-a' => [
+                'vendor/package' => '1.2.3',
+                'vendor/dev-package' => '4.5.6',
+            ],
+        ], $parser->getCollectedInstalledPackageVersionsByProject());
     }
 
     public function testExecuteAddsInstalledVersionForTransitivePackageIndependentlyOfRepositoryOrder(): void

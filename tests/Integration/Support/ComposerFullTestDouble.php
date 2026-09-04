@@ -11,6 +11,11 @@ class ComposerFullTestDouble extends ComposerFull
 {
     protected Command $composerOutdatedCommand;
 
+    public function getCollectedOutdatedPackageDataByProject(): array
+    {
+        return $this->outdatedPackageDataByProject;
+    }
+
     public function setComposerOutdatedCommand(Command $composerOutdatedCommand): void
     {
         $this->composerOutdatedCommand = $composerOutdatedCommand;
