@@ -48,6 +48,49 @@ class ComposerFullTest extends TestCase
         self::assertStringContainsString("Latest version: 1.4.0\n", $comment);
     }
 
+    public function testExecuteAddsLatestAvailableVersionForTransitivePackageIndependentlyOfRepositoryOrder(): void
+    {
+        $projectA = [
+            'name' => 'project-a',
+            'directory' => 'var/repositories/project-a',
+            'remote' => 'git@gitlab.example.com:team/project-a.git',
+            'branch' => 'main',
+        ];
+        $projectB = [
+            'name' => 'project-b',
+            'directory' => 'var/repositories/project-b',
+            'remote' => 'git@gitlab.example.com:team/project-b.git',
+            'branch' => 'main',
+        ];
+        $outdatedPackages = [
+            [
+                'name' => 'vendor/transitive',
+                'version' => '1.2.3',
+                'latest' => '1.4.0',
+                'latest-status' => 'semver-safe-update',
+            ],
+        ];
+
+        $groupsWhenProjectAIsFirst = $this->parseTransitivePackageGroups(
+            [$projectA, $projectB],
+            $this->successfulCommand($outdatedPackages, 2)
+        );
+        $groupsWhenProjectBIsFirst = $this->parseTransitivePackageGroups(
+            [$projectB, $projectA],
+            $this->successfulCommand($outdatedPackages, 2)
+        );
+
+        self::assertSame($groupsWhenProjectAIsFirst, $groupsWhenProjectBIsFirst);
+        self::assertStringContainsString(
+            "Latest version: 1.4.0\n",
+            $groupsWhenProjectAIsFirst['Packages']['vendor/transitive']['project-a']['comment']
+        );
+        self::assertStringContainsString(
+            "Latest version: 1.4.0\n",
+            $groupsWhenProjectAIsFirst['Packages']['vendor/transitive']['project-b']['comment']
+        );
+    }
+
     public function testExecuteSkipsLatestVersionCommentForUpToDatePackage(): void
     {
         $parser = $this->parser($this->successfulCommand([
@@ -108,6 +151,53 @@ class ComposerFullTest extends TestCase
 
     protected function parser(Command $command): ComposerFullTestDouble
     {
+        return $this->parserForRepositories($command, [
+            [
+                'name' => 'project-a',
+                'directory' => 'var/repositories/project-a',
+                'remote' => 'git@gitlab.example.com:team/project-a.git',
+                'branch' => 'main',
+            ],
+        ], [
+            'project-a' => [
+                'composerJson' => [
+                    'require' => ['vendor/package' => '^1.0'],
+                ],
+                'composerLock' => [
+                    'packages' => [
+                        ['name' => 'vendor/package', 'version' => '1.2.3'],
+                    ],
+                ],
+            ],
+        ], '/tmp/project-a');
+    }
+
+    protected function parseTransitivePackageGroups(array $repositories, Command $command): array
+    {
+        return $this->parserForRepositories($command, $repositories, [
+            'project-a' => [
+                'composerJson' => [],
+                'composerLock' => [
+                    'packages' => [
+                        ['name' => 'vendor/transitive', 'version' => '1.2.3'],
+                    ],
+                ],
+            ],
+            'project-b' => [
+                'composerJson' => [
+                    'require' => ['vendor/transitive' => '^1.0'],
+                ],
+                'composerLock' => [
+                    'packages' => [
+                        ['name' => 'vendor/transitive', 'version' => '1.2.3'],
+                    ],
+                ],
+            ],
+        ], '/tmp/transitive-package')->execute()->getGroups();
+    }
+
+    protected function parserForRepositories(Command $command, array $repositories, array $repositoryData, string $localRepositoryDirectory): ComposerFullTestDouble
+    {
         $packageConfig = new PackageConfig([
             'includeInstalledVersion' => true,
             'installedVersionDisplayedIn' => 'comment',
@@ -122,26 +212,8 @@ class ComposerFullTest extends TestCase
             ],
             'observedPackages' => [],
         ]);
-        $repositoryList = new RepositoryList([
-            [
-                'name' => 'project-a',
-                'directory' => 'var/repositories/project-a',
-                'remote' => 'git@gitlab.example.com:team/project-a.git',
-                'branch' => 'main',
-            ],
-        ]);
-        $provider = new InMemoryProvider([
-            'project-a' => [
-                'composerJson' => [
-                    'require' => ['vendor/package' => '^1.0'],
-                ],
-                'composerLock' => [
-                    'packages' => [
-                        ['name' => 'vendor/package', 'version' => '1.2.3'],
-                    ],
-                ],
-            ],
-        ], '/tmp/project-a');
+        $repositoryList = new RepositoryList($repositories);
+        $provider = new InMemoryProvider($repositoryData, $localRepositoryDirectory);
         $providerManager = new ProviderManager('test', new ServiceLocator([
             'test' => static fn () => $provider,
         ]));
@@ -156,13 +228,13 @@ class ComposerFullTest extends TestCase
         return $parser;
     }
 
-    protected function successfulCommand(array $installedPackages): Command
+    protected function successfulCommand(array $outdatedPackages, int $executionCount = 1): Command
     {
         $command = $this->createMock(Command::class);
-        $command->expects(self::once())->method('execute')->willReturn(true);
-        $command->expects(self::once())
+        $command->expects(self::exactly($executionCount))->method('execute')->willReturn(true);
+        $command->expects(self::exactly($executionCount))
             ->method('getOutput')
-            ->willReturn((string) json_encode(['installed' => $installedPackages], JSON_THROW_ON_ERROR));
+            ->willReturn((string) json_encode(['installed' => $outdatedPackages], JSON_THROW_ON_ERROR));
 
         return $command;
     }

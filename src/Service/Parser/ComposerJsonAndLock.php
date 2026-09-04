@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace EvilStudio\ComposerParser\Service\Parser;
 
 use EvilStudio\ComposerParser\Api\Data\PackageConfigInterface;
+use EvilStudio\ComposerParser\Api\Data\ParsedDataInterface;
 use EvilStudio\ComposerParser\Api\Data\RepositoryInterface;
 use EvilStudio\ComposerParser\Api\ProviderInterface;
+use EvilStudio\ComposerParser\Exception\RepositoryProcessingException;
+use EvilStudio\ComposerParser\Model\ParsedData;
 use EvilStudio\ComposerParser\Model\RepositoryData;
+use Throwable;
 
 class ComposerJsonAndLock extends ComposerJson
 {
@@ -15,14 +19,36 @@ class ComposerJsonAndLock extends ComposerJson
     protected const string LOCK_PACKAGES_KEY = 'packages';
     protected const string LOCK_PACKAGES_DEV_KEY = 'packages-dev';
 
+    protected array $installedPackagesByProject = [];
+
+    public function execute(): ParsedDataInterface
+    {
+        $this->installedPackagesByProject = [];
+        $parsedData = parent::execute();
+
+        $this->addCollectedInstalledPackageVersions();
+
+        return new ParsedData($this->parsedData, $parsedData->getProjectNames());
+    }
+
+    protected function addCollectedInstalledPackageVersions(): void
+    {
+        foreach ($this->installedPackagesByProject as $projectName => $installedPackagesByName) {
+            try {
+                $this->addInstalledPackageVersions($installedPackagesByName, $projectName);
+                $this->addObservedPackageVersions($installedPackagesByName, $projectName);
+            } catch (Throwable $throwable) {
+                throw new RepositoryProcessingException($projectName, $throwable);
+            }
+        }
+    }
+
     protected function executePerRepository(RepositoryInterface $repository, ProviderInterface $provider, array $projectNamesGrouped): RepositoryData
     {
         $repositoryData = parent::executePerRepository($repository, $provider, $projectNamesGrouped);
 
         if ($this->packageConfig->includeInstalledVersion() && !empty($repositoryData->getComposerLock())) {
-            $installedPackagesByName = $this->getInstalledPackagesByName($repositoryData->getComposerLock());
-            $this->addInstalledPackageVersions($installedPackagesByName, $repository->getProjectName());
-            $this->addObservedPackageVersions($installedPackagesByName, $repository->getProjectName());
+            $this->installedPackagesByProject[$repository->getProjectName()] = $this->getInstalledPackagesByName($repositoryData->getComposerLock());
         }
 
         return $repositoryData;

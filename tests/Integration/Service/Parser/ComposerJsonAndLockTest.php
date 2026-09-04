@@ -82,6 +82,35 @@ class ComposerJsonAndLockTest extends TestCase
         self::assertStringContainsString('Installed version: 3.4.5', $parsedData['Require Dev']['vendor/dev-tool']['project-a']['comment']);
     }
 
+    public function testExecuteAddsInstalledVersionForTransitivePackageIndependentlyOfRepositoryOrder(): void
+    {
+        $projectA = [
+            'name' => 'project-a',
+            'directory' => 'var/repositories/project-a',
+            'remote' => 'git@gitlab.example.com:team/project-a.git',
+            'branch' => 'main',
+        ];
+        $projectB = [
+            'name' => 'project-b',
+            'directory' => 'var/repositories/project-b',
+            'remote' => 'git@gitlab.example.com:team/project-b.git',
+            'branch' => 'main',
+        ];
+
+        $groupsWhenProjectAIsFirst = $this->parseTransitivePackageGroups([$projectA, $projectB]);
+        $groupsWhenProjectBIsFirst = $this->parseTransitivePackageGroups([$projectB, $projectA]);
+
+        self::assertSame($groupsWhenProjectAIsFirst, $groupsWhenProjectBIsFirst);
+        self::assertSame(
+            "Installed version: 1.2.3\n",
+            $groupsWhenProjectAIsFirst['Packages']['vendor/transitive']['project-a']['comment']
+        );
+        self::assertSame(
+            "Installed version: 1.2.3\n",
+            $groupsWhenProjectAIsFirst['Packages']['vendor/transitive']['project-b']['comment']
+        );
+    }
+
     public function testExecuteSkipsInstalledVersionWhenPackagesKeyMissing(): void
     {
         $packageConfig = new PackageConfig([
@@ -275,5 +304,44 @@ class ComposerJsonAndLockTest extends TestCase
         $parser = new ComposerJsonAndLock($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
 
         self::assertSame([], $parser->execute()->getGroups());
+    }
+
+    protected function parseTransitivePackageGroups(array $repositories): array
+    {
+        $packageConfig = new PackageConfig([
+            'includeInstalledVersion' => true,
+            'installedVersionDisplayedIn' => 'comment',
+            'packageGroups' => [
+                ['name' => 'Packages', 'parserPriority' => 0, 'writerOrder' => 0, 'groupType' => 'require', 'regex' => '/.*/'],
+            ],
+            'observedPackages' => [],
+        ]);
+        $repositoryList = new RepositoryList($repositories);
+        $provider = new InMemoryProvider([
+            'project-a' => [
+                'composerJson' => [],
+                'composerLock' => [
+                    'packages' => [
+                        ['name' => 'vendor/transitive', 'version' => '1.2.3'],
+                    ],
+                ],
+            ],
+            'project-b' => [
+                'composerJson' => [
+                    'require' => ['vendor/transitive' => '^1.0'],
+                ],
+                'composerLock' => [
+                    'packages' => [
+                        ['name' => 'vendor/transitive', 'version' => '1.2.3'],
+                    ],
+                ],
+            ],
+        ]);
+        $providerManager = new ProviderManager('test', new ServiceLocator([
+            'test' => static fn () => $provider,
+        ]));
+        $parser = new ComposerJsonAndLock($packageConfig, $repositoryList, $providerManager, new RepositoryDataFactory());
+
+        return $parser->execute()->getGroups();
     }
 }
