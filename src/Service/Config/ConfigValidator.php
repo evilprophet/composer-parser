@@ -15,6 +15,7 @@ class ConfigValidator
     protected const array ALLOWED_PARSER_TYPES = ['composerJson', 'composerJsonAndLock', 'composerFull'];
     protected const array PARSER_TYPES_WITH_COMPOSER_LOCK = ['composerJsonAndLock', 'composerFull'];
     protected const array ALLOWED_WRITER_TYPES = ['xlsx', 'json', 'html', 'googleSheets'];
+    protected const array ALLOWED_SECURITY_LIST_TYPES = ['mageVulnDb'];
     protected const array STYLED_WRITER_TYPES = ['xlsx', 'html', 'googleSheets'];
     protected const array XLSX_INVALID_SHEET_NAME_CHARACTERS = ['*', ':', '/', '\\', '?', '[', ']'];
     protected const array ALLOWED_INSTALLED_VERSION_DISPLAY = ['value', 'comment'];
@@ -32,6 +33,7 @@ class ConfigValidator
         $this->validateAppConfig($appConfig);
         $this->validatePackageConfig($packageConfig, $appConfig['parserType']);
         $this->validateWriterConfig($writerConfig, $appConfig['writerType']);
+        $this->validateSecurityConfig($appConfig['security'] ?? [], $writerConfig, $appConfig['writerType']);
         $this->validateRepositoryConfig($repositoryConfig);
     }
 
@@ -65,6 +67,113 @@ class ConfigValidator
                     $appConfig['providerType']
                 ));
             }
+        }
+    }
+
+    protected function validateSecurityConfig(mixed $securityConfig, array $writerConfig, string $writerType): void
+    {
+        if (!is_array($securityConfig)) {
+            throw new InvalidArgumentException('Invalid config: app.config.security must be an array.');
+        }
+
+        if (array_key_exists('enabled', $securityConfig) && !is_bool($securityConfig['enabled'])) {
+            throw new InvalidArgumentException('Invalid config: app.config.security.enabled must be a boolean.');
+        }
+
+        if (($securityConfig['enabled'] ?? false) !== true) {
+            return;
+        }
+
+        foreach (['matchByPackageName'] as $booleanField) {
+            if (array_key_exists($booleanField, $securityConfig) && !is_bool($securityConfig[$booleanField])) {
+                throw new InvalidArgumentException(sprintf('Invalid config: app.config.security.%s must be a boolean.', $booleanField));
+            }
+        }
+
+        if (array_key_exists('groupName', $securityConfig) && (!is_string($securityConfig['groupName']) || trim($securityConfig['groupName']) === '')) {
+            throw new InvalidArgumentException('Invalid config: app.config.security.groupName must be a non-empty string.');
+        }
+
+        $this->validateSecurityLists($securityConfig['lists'] ?? []);
+
+        if (in_array($writerType, self::STYLED_WRITER_TYPES, true)) {
+            $this->validateSecurityHighlight($writerConfig['styling']['securityHighlight'] ?? null);
+        }
+    }
+
+    protected function validateSecurityLists(mixed $lists): void
+    {
+        if (!is_array($lists) || $lists === []) {
+            throw new InvalidArgumentException(
+                'Invalid config: app.config.security.lists requires at least one entry when security is enabled.'
+            );
+        }
+
+        foreach ($lists as $type => $listConfig) {
+            if (!is_string($type) || !in_array($type, self::ALLOWED_SECURITY_LIST_TYPES, true)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid config: app.config.security.lists must be keyed by one of [%s], got "%s".',
+                    implode(', ', self::ALLOWED_SECURITY_LIST_TYPES),
+                    is_string($type) ? $type : (string) $type
+                ));
+            }
+
+            if (!is_array($listConfig)) {
+                throw new InvalidArgumentException(sprintf('Invalid config: app.config.security.lists.%s must be an array.', $type));
+            }
+
+            $this->validateSecurityListUrls($type, $listConfig['urls'] ?? []);
+        }
+    }
+
+    protected function validateSecurityListUrls(string $type, mixed $urls): void
+    {
+        if (!is_array($urls) || $urls === []) {
+            throw new InvalidArgumentException(sprintf(
+                'Invalid config: app.config.security.lists.%s.urls requires at least one URL.',
+                $type
+            ));
+        }
+
+        foreach ($urls as $index => $url) {
+            if (!is_string($url) || filter_var($url, FILTER_VALIDATE_URL) === false) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid config: app.config.security.lists.%s.urls[%s] must be a valid URL.',
+                    $type,
+                    (string) $index
+                ));
+            }
+        }
+    }
+
+    protected function validateSecurityHighlight(mixed $securityHighlight): void
+    {
+        if (!is_array($securityHighlight) || $securityHighlight === []) {
+            throw new InvalidArgumentException(
+                'Invalid config: writer.config.styling.securityHighlight is required when security is enabled.'
+            );
+        }
+
+        $hasColor = false;
+        foreach (['color', 'backgroundColor'] as $field) {
+            if (!array_key_exists($field, $securityHighlight)) {
+                continue;
+            }
+
+            if (!is_string($securityHighlight[$field]) || preg_match(self::HEX_COLOR_REGEX, $securityHighlight[$field]) !== 1) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid config: writer.config.styling.securityHighlight.%s must be a #RRGGBB string.',
+                    $field
+                ));
+            }
+
+            $hasColor = true;
+        }
+
+        if (!$hasColor) {
+            throw new InvalidArgumentException(
+                'Invalid config: writer.config.styling.securityHighlight requires color or backgroundColor.'
+            );
         }
     }
 

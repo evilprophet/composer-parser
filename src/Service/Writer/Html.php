@@ -11,6 +11,7 @@ use EvilStudio\ComposerParser\Api\WriterInterface;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
 use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
 use EvilStudio\ComposerParser\Service\Writer\Support\OrdersGroupsByConfig;
+use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesSecurityCellStyle;
 use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesVersionCellStyle;
 
 class Html implements WriterInterface
@@ -18,6 +19,7 @@ class Html implements WriterInterface
     use HandlesLocalOutputPath;
     use OrdersGroupsByConfig;
     use ResolvesVersionCellStyle;
+    use ResolvesSecurityCellStyle;
 
     protected const string FILE_EXTENSION = '.html';
     protected const int PACKAGE_COLUMN_WIDTH_PX = 300;
@@ -35,6 +37,7 @@ class Html implements WriterInterface
     public function execute(ParsedDataInterface $parsedData): void
     {
         $report = $this->reportFactory->build($parsedData);
+        $this->prepareSecurityFindings($report->getSecurityFindings());
 
         $projects = $report->getProjectNames();
         $groups = $this->getOrderedGroups($report->getGroups());
@@ -69,9 +72,11 @@ class Html implements WriterInterface
         $html[] = '<h1>Composer Parser Report</h1>';
         $html[] = '<p class="meta">Generated at: ' . $this->escape($generatedAt) . '</p>';
         $html[] = '<table>';
-        $html[] = '<thead><tr><th class="col-package">Package</th>';
+        $summaryAttribute = trim($report->getSecuritySummary()) !== '' ? ' title="' . $this->escape($report->getSecuritySummary()) . '"' : '';
+        $html[] = '<thead><tr><th class="col-package"' . $summaryAttribute . '>Package</th>';
         foreach ($projects as $projectName) {
-            $html[] = '<th class="col-project">' . $this->escape((string) $projectName) . '</th>';
+            $projectStyleAttribute = $this->isFlaggedProject((string) $projectName) ? $this->buildStyleAttribute($this->getSecurityCellStyle()) : '';
+            $html[] = '<th class="col-project"' . $projectStyleAttribute . '>' . $this->escape((string) $projectName) . '</th>';
         }
         $html[] = '</tr></thead><tbody>';
 
@@ -81,7 +86,9 @@ class Html implements WriterInterface
 
             foreach ($packages as $packageName => $packageRow) {
                 $html[] = '<tr>';
-                $html[] = '<td class="col-package" title="' . $this->escape((string) $packageName) . '"><div class="truncate">' . $this->escape((string) $packageName) . '</div></td>';
+                $packageStyleAttribute = $this->isFlaggedPackage((string) $packageName) ? $this->buildStyleAttribute($this->getSecurityCellStyle()) : '';
+                $html[] = '<td class="col-package"' . $packageStyleAttribute . ' title="' . $this->escape((string) $packageName) . '">'
+                    . '<div class="truncate">' . $this->escape((string) $packageName) . '</div></td>';
 
                 foreach ($projects as $projectName) {
                     $cell = $packageRow[$projectName] ?? ['value' => '', 'comment' => ''];
@@ -89,7 +96,7 @@ class Html implements WriterInterface
                     $value = $this->escape($valueRaw);
                     $commentRaw = trim((string) ($cell['comment'] ?? ''));
 
-                    $style = $this->getPackageVersionCellStyle($valueRaw, (string) $packageName);
+                    $style = $this->isFlaggedCell($projectName, (string) $packageName) ? $this->getSecurityCellStyle() : $this->getPackageVersionCellStyle($valueRaw, (string) $packageName);
                     $styleAttribute = $this->buildStyleAttribute($style);
 
                     $cellHtml = '<div class="truncate" title="' . $value . '">' . $value . '</div>';

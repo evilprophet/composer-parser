@@ -19,6 +19,10 @@ services:
       - '../src/Service/Writer/Json.php'
       - '../src/Service/Writer/Html.php'
       - '../src/Service/Writer/GoogleSheets.php'
+      - '../src/Service/Security/ModuleCodeKey.php'
+      - '../src/Service/Security/SecurityScanner.php'
+      - '../src/Service/Security/VulnerabilityList/MageVulnDb.php'
+      - '../src/Service/Security/PackageKey/MagentoModuleCode.php'
 
   EvilStudio\ComposerParser\Model\PackageConfig:
     arguments:
@@ -70,6 +74,22 @@ services:
         gitRepository: '@EvilStudio\ComposerParser\Service\Provider\GitRepository'
         gitlabApiFiles: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiFiles'
         gitlabApiArchive: '@EvilStudio\ComposerParser\Service\Provider\Gitlab\ApiArchive'
+
+  EvilStudio\ComposerParser\Service\Security\VulnerabilityList\MageVulnDb:
+    arguments:
+      $urls: "@=container.getParameter('app.config')['security']['lists']['mageVulnDb']['urls'] ?? []"
+
+  EvilStudio\ComposerParser\Service\Security\PackageKey\MagentoModuleCode:
+    arguments:
+      $matchByPackageName: "@=container.getParameter('app.config')['security']['matchByPackageName'] ?? true"
+
+  EvilStudio\ComposerParser\Service\Security\SecurityScanner:
+    arguments:
+      $securityConfig: "@=container.getParameter('app.config')['security'] ?? []"
+      $vulnerabilityLists: !service_locator
+        mageVulnDb: '@EvilStudio\ComposerParser\Service\Security\VulnerabilityList\MageVulnDb'
+      $packageKeyResolvers: !service_locator
+        mageVulnDb: '@EvilStudio\ComposerParser\Service\Security\PackageKey\MagentoModuleCode'
 
   EvilStudio\ComposerParser\Service\Parser\ParserManager:
     arguments:

@@ -13,6 +13,8 @@ use EvilStudio\ComposerParser\Service\Parser\ComposerJson;
 use EvilStudio\ComposerParser\Service\Parser\ParserManager;
 use EvilStudio\ComposerParser\Service\Parser\RepositoryDataFactory;
 use EvilStudio\ComposerParser\Service\Provider\ProviderManager;
+use EvilStudio\ComposerParser\Service\Security\SecurityScanner;
+use EvilStudio\ComposerParser\Service\Security\VersionComparator;
 use EvilStudio\ComposerParser\Service\Writer\WriterManager;
 use EvilStudio\ComposerParser\Tests\Integration\Support\CapturingWriter;
 use EvilStudio\ComposerParser\Tests\Integration\Support\InMemoryProvider;
@@ -95,7 +97,7 @@ class RunReportTest extends TestCase
             'capture' => static fn () => $writer,
         ]));
 
-        $runReport = new RunReport($parserManager, $writerManager);
+        $runReport = new RunReport($parserManager, $writerManager, $this->createDisabledSecurityScanner($repositoryList, $providerManager));
         $runReport->execute();
 
         $captured = $writer->getCapturedParsedData();
@@ -130,7 +132,7 @@ class RunReportTest extends TestCase
             'capture' => static fn () => $writer,
         ]));
 
-        $runReport = new RunReport($parserManager, $writerManager);
+        $runReport = new RunReport($parserManager, $writerManager, $this->createDisabledSecurityScanner(new RepositoryList([]), $this->createStub(ProviderManager::class)));
 
         try {
             $runReport->execute();
@@ -140,5 +142,16 @@ class RunReportTest extends TestCase
         }
 
         self::assertNull($writer->getCapturedParsedData());
+    }
+
+    protected function createDisabledSecurityScanner(RepositoryList $repositoryList, ProviderManager $providerManager): SecurityScanner
+    {
+        return new SecurityScanner(
+            $repositoryList,
+            $providerManager,
+            new VersionComparator(),
+            new ServiceLocator([]),
+            new ServiceLocator([])
+        );
     }
 }

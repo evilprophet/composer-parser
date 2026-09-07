@@ -8,6 +8,14 @@ parameters:
       url: https://gitlab.com
       apiToken: #https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html - read_repository permission is required
     ansibleVaultPassword: #Used by provider gitlabApiArchive to decrypt auth.json.encrypted if present
+    security: #Optional; omitted or enabled=false keeps the report unchanged
+      enabled: false
+      matchByPackageName: true #false matches modules by autoload namespace only
+      groupName: Security findings #Holds flagged packages that match no configured packageGroups regex
+      lists: #Keyed by list type; supported: mageVulnDb
+        mageVulnDb:
+          urls:
+            - https://raw.githubusercontent.com/sansecio/magevulndb/master/magento2-vulnerable-extensions.csv
 
   package.config:
     #groupType supported values: require, require-dev, replace, observed, patchset
@@ -39,6 +47,8 @@ parameters:
       serviceAccountJsonPath: #Required when writerType=googleSheets, path to service account JSON key file
     styling:
       groupHeaderBackgroundColor: '#F2F2F2' # Quoted #RRGGBB; used by xlsx, html, and googleSheets
+      securityHighlight: #Required when app.config.security.enabled=true; accepts color, backgroundColor, or both
+        backgroundColor: '#FFCCCC'
       cellStyleMapping:
         - { versionRegex: /(dev-.*|.*-dev)/, color: '#FF8000', backgroundColor: '#FF0000' }
         - { packageNameRegex: /^package_name1/, versionRegex: /^(?!2\.4\.3$).+$/, color: '#FF0000' }

@@ -12,14 +12,14 @@ class RepositoryTest extends TestCase
     public function testParsesSshRemoteWithSubgroups(): void
     {
         $repository = new Repository([
-            'name' => 'americandental',
-            'remote' => 'git@gitlab.creativestyle.pl:shopware/projects/americandental/americandental.git',
+            'name' => 'project-b',
+            'remote' => 'git@gitlab.example.com:team/projects/project-b/project-b.git',
             'branch' => 'master',
-            'directory' => 'var/repositories/americandental',
+            'directory' => 'var/repositories/project-b',
         ]);
 
-        self::assertSame('shopware/projects/americandental/americandental', $repository->getRepositoryName());
-        self::assertSame('americandental', $repository->getRemoteProjectName());
+        self::assertSame('team/projects/project-b/project-b', $repository->getRepositoryName());
+        self::assertSame('project-b', $repository->getRemoteProjectName());
     }
 
     public function testParsesHttpsRemote(): void

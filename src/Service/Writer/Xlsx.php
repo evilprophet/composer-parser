@@ -12,6 +12,7 @@ use EvilStudio\ComposerParser\Model\Report;
 use EvilStudio\ComposerParser\Service\Report\ReportFactory;
 use EvilStudio\ComposerParser\Service\Writer\Support\HandlesLocalOutputPath;
 use EvilStudio\ComposerParser\Service\Writer\Support\OrdersGroupsByConfig;
+use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesSecurityCellStyle;
 use EvilStudio\ComposerParser\Service\Writer\Support\ResolvesVersionCellStyle;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -23,6 +24,7 @@ class Xlsx implements WriterInterface
     use HandlesLocalOutputPath;
     use OrdersGroupsByConfig;
     use ResolvesVersionCellStyle;
+    use ResolvesSecurityCellStyle;
 
     protected const string FILE_EXTENSION = '.xlsx';
     protected const int PROJECT_COLUMN_WIDTH = 10;
@@ -42,10 +44,12 @@ class Xlsx implements WriterInterface
     public function execute(ParsedDataInterface $parsedData): void
     {
         $report = $this->reportFactory->build($parsedData);
+        $this->prepareSecurityFindings($report->getSecurityFindings());
 
         $this->prepareSpreadsheet();
 
         $this->prepareHeader($report->getProjectNames());
+        $this->prepareSummaryComment($report->getSecuritySummary());
         $this->prepareData($report);
 
         $this->writeSpreadsheet();
@@ -80,6 +84,9 @@ class Xlsx implements WriterInterface
         foreach ($projectNames as $projectName) {
             $sheet->setCellValue([$column, 1], $projectName);
             $sheet->getStyle([$column, 1])->applyFromArray($this->getHeaderStyle());
+            if ($this->isFlaggedProject((string) $projectName)) {
+                $sheet->getStyle([$column, 1])->applyFromArray($this->getSecurityCellStyle());
+            }
             $sheet->getColumnDimensionByColumn($column)->setWidth(self::PROJECT_COLUMN_WIDTH);
             $column++;
         }
@@ -100,13 +107,16 @@ class Xlsx implements WriterInterface
 
             foreach ($currentGroup as $packageName => $packageRow) {
                 $sheet->setCellValueExplicit([$column, $row], $packageName, DataType::TYPE_STRING);
+                if ($this->isFlaggedPackage((string) $packageName)) {
+                    $sheet->getStyle([$column, $row])->applyFromArray($this->getSecurityCellStyle());
+                }
                 $column++;
 
                 foreach ($projectNames as $projectName) {
                     $versionCell = $packageRow[$projectName] ?? ['value' => '', 'comment' => ''];
                     $sheet->setCellValueExplicit([$column, $row], $versionCell['value'], DataType::TYPE_STRING);
 
-                    $style = $this->getPackageVersionCellStyle($versionCell['value'], $packageName);
+                    $style = $this->isFlaggedCell($projectName, (string) $packageName) ? $this->getSecurityCellStyle() : $this->getPackageVersionCellStyle($versionCell['value'], $packageName);
                     if (!empty($style)) {
                         $sheet->getStyle([$column, $row])->applyFromArray($style);
                     }
@@ -122,6 +132,15 @@ class Xlsx implements WriterInterface
                 $row++;
             }
         }
+    }
+
+    protected function prepareSummaryComment(string $securitySummary): void
+    {
+        if (trim($securitySummary) === '') {
+            return;
+        }
+
+        $this->spreadsheet->getActiveSheet()->getComment([1, 1])->getText()->createTextRun($securitySummary);
     }
 
     protected function getHeaderStyle(): array

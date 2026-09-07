@@ -9,4 +9,6 @@ interface StylingConfigInterface
     public function getGroupHeaderBackgroundColor(): string;
 
     public function getCellStyleMapping(): array;
+
+    public function getSecurityHighlightStyle(): array;
 }

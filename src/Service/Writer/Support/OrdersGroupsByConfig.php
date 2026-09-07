@@ -18,6 +18,14 @@ trait OrdersGroupsByConfig
             $orderedGroups[$groupName] = $groups[$groupName];
         }
 
+        foreach ($groups as $groupName => $packages) {
+            if (array_key_exists($groupName, $orderedGroups)) {
+                continue;
+            }
+
+            $orderedGroups[$groupName] = $packages;
+        }
+
         return $orderedGroups;
     }
 }
