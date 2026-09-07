@@ -13,6 +13,7 @@ It loads repositories through Git or the GitLab API, reads `composer.json` and o
 - **Four report formats**: generate XLSX, JSON, HTML, or Google Sheets output from the same normalized data.
 - **Configurable package groups**: match `require`, `require-dev`, `replace`, `patchset`, and explicitly observed packages with regular expressions.
 - **Configurable report styling**: apply version- and package-based colors to XLSX, HTML, and Google Sheets reports.
+- **Optional vulnerability scanning**: cross-reference locked packages against a published advisory list and highlight the affected projects and packages.
 - **Complete report snapshots**: repository and parser failures stop the run before the writer replaces the previous complete report.
 
 ## 📁 Project Structure
@@ -130,6 +131,21 @@ Styling is required for `xlsx`, `html`, and `googleSheets`. An XLSX sheet name c
 - Report columns are sorted alphabetically by repository name, independently of configuration order.
 - Standard dependency and observed package rows are sorted alphabetically; patch rows preserve their source order.
 
+**Security scanning**
+
+- `app.config.security` is optional. A missing section, or `enabled: false`, leaves the report unchanged.
+- `lists` is keyed by list type. A type pairs an advisory source with the rule deriving the keys that source indexes packages by, so a new source needs no change to the parsers or the writers.
+- Every list is downloaded once per run and validated before the writer publishes anything. An unreachable source, an unusable file, or an unsupported list type stops the run and leaves the previous report untouched.
+- `writer.config.styling.securityHighlight` accepts `color`, `backgroundColor`, or both, and is required for `xlsx`, `html`, and `googleSheets`.
+- A finding colors the project header, the package name, and the version cell where they intersect, and adds a note there naming the advisory, both versions, and its reference and update URLs. Cell A1 carries a note summarizing the run.
+- A flagged package with no row in the configured groups, such as a vulnerable transitive dependency, is added to the group named by `groupName`. That group also appears in `xlsx`, `json`, and `html`, without the color.
+- Only a key the list actually contains is ever flagged, so nothing is guessed. A version at or above the advisory's fixed version produces no finding, one that cannot be compared is flagged with a note saying so, and a package whose key cannot be derived is left unstyled and counted in the A1 summary.
+
+**MageVulnDB list**
+
+- `mageVulnDb` reads the CSV files published by [MageVulnDB](https://github.com/sansecio/magevulndb), which index entries by Magento module code, and accepts several `urls`.
+- Module codes are derived from `composer.lock` alone, because `vendor/` is not available. The first two `autoload.psr-4` or `psr-0` segments reproduce the code even when the package name shares nothing with it, so a package named `vendor/magento2-extension` autoloading `ShopVendor\Checkout\` resolves to `ShopVendor_Checkout`. `matchByPackageName` adds a fallback deriving the code from the Composer name with the vendor kept anchored.
+
 **Google Sheets**
 
 - Enable the Google Sheets API in a Google Cloud project.
@@ -143,8 +159,9 @@ Styling is required for `xlsx`, `html`, and `googleSheets`. An XLSX sheet name c
 1. `app:cleanup` removes only the configured working directories below `var/repositories/`.
 2. The selected provider loads every configured repository into its local working directory.
 3. The selected parser builds one package matrix across all repositories.
-4. The selected writer publishes the report only after every repository has been processed successfully.
-5. A repository, parser, or validation failure returns a non-zero exit code and leaves the previous complete report untouched.
+4. When security scanning is enabled, every locked package is cross-referenced against the configured advisory lists and the matrix is annotated with the findings.
+5. The selected writer publishes the report only after every repository has been processed successfully.
+6. A repository, parser, security, or validation failure returns a non-zero exit code and leaves the previous complete report untouched.
 
 ## 💻 Commands Overview
 

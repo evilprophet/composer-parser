@@ -19,7 +19,9 @@ class ReportFactory
 
         return new Report(
             $parsedData->getProjectNames(),
-            $parsedData->getGroups()
+            $parsedData->getGroups(),
+            $parsedData->getSecurityFindings(),
+            $parsedData->getSecuritySummary()
         );
     }
 }

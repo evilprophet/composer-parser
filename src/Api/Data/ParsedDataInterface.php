@@ -9,4 +9,8 @@ interface ParsedDataInterface
     public function getGroups(): array;
 
     public function getProjectNames(): array;
+
+    public function getSecurityFindings(): array;
+
+    public function getSecuritySummary(): string;
 }

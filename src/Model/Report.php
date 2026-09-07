@@ -8,7 +8,9 @@ class Report
 {
     public function __construct(
         protected array $projectNames,
-        protected array $groups
+        protected array $groups,
+        protected array $securityFindings = [],
+        protected string $securitySummary = ''
     ) {
     }
 
@@ -20,5 +22,15 @@ class Report
     public function getGroups(): array
     {
         return $this->groups;
+    }
+
+    public function getSecurityFindings(): array
+    {
+        return $this->securityFindings;
+    }
+
+    public function getSecuritySummary(): string
+    {
+        return $this->securitySummary;
     }
 }
